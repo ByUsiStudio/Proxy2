@@ -43,6 +43,10 @@ func StartWebServer(port int) {
 	mux.HandleFunc("/", controller.StaticController{Content: content}.Static)
 
 	mux.HandleFunc("/user/login", controller.LoginController{}.LoginHandler)
+	mux.HandleFunc("/user/register", controller.LoginController{}.RegisterHandler)
+	mux.HandleFunc("/user/systemConfig", controller.LoginController{}.SystemConfigHandler)
+	mux.HandleFunc("/user/updateUserStatus", controller.LoginController{}.UpdateUserStatusHandler)
+	mux.HandleFunc("/user/updateSystemConfig", controller.LoginController{}.UpdateSystemConfigHandler)
 	clientUserController := controller.ClientUserController{}
 	mux.HandleFunc("/client/user/saveUser", clientUserController.Add)
 	mux.HandleFunc("/client/user/list", clientUserController.List)

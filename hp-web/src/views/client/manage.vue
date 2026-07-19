@@ -7,7 +7,7 @@
         <div class="logo">
           <a href="/" class="logo-link">
             <img src="/logo-back.png" class="logo-img" alt="HP-Lite">
-            <span class="logo-text">HP-Lite内网穿透</span>
+            <span class="logo-text">{{ siteTitle || 'HP-Lite内网穿透' }}</span>
           </a>
         </div>
 
@@ -153,6 +153,10 @@
             <template #icon><svg t="1751868316938" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="22356" width="24" height="24"><path d="M896 128l0 832-672 0c-53.024 0-96-42.976-96-96s42.976-96 96-96l608 0 0-768-640 0c-70.4 0-128 57.6-128 128l0 768c0 70.4 57.6 128 128 128l768 0 0-896-64 0z" fill="#ffffff" p-id="22357"></path><path d="M224.064 832l0 0c-0.032 0-0.032 0-0.064 0-17.664 0-32 14.336-32 32s14.336 32 32 32c0.032 0 0.032 0 0.064 0l0 0 607.904 0 0-64-607.904 0z" fill="#ffffff" p-id="22358"></path></svg></template>
             <span>穿透交流</span>
           </a-menu-item>
+          <a-menu-item key="/client/settings" v-if="userInfo&&userInfo.role==='ADMIN'" class="sidebar-item">
+            <template #icon><svg t="1751868156496" class="icon" viewBox="0 0 1034 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13941" width="24" height="24"><path d="M734.208 196.608c97.28 0 186.368 33.792 258.048 89.088V178.176c0-38.912-37.888-68.608-83.968-68.608H83.968c-47.104 0-83.968 29.696-83.968 68.608v353.28h324.608c38.912-190.464 207.872-334.848 409.6-334.848zM390.144 851.968H75.776c-20.48 0-37.888 14.336-37.888 30.72s17.408 30.72 37.888 30.72h366.592c-18.432-18.432-36.864-39.936-52.224-61.44zM317.44 593.92h-317.44v34.816c0 38.912 37.888 69.632 83.968 69.632h240.64c-5.12-26.624-8.192-55.296-8.192-83.968 0-6.144 1.024-13.312 1.024-20.48z" fill="#ffffff" p-id="13942"></path><path d="M980.992 614.4c0-34.816 21.504-64.512 53.248-76.8-7.168-28.672-18.432-56.32-33.792-80.896-30.72 13.312-66.56 8.192-91.136-16.384-24.576-24.576-30.72-61.44-16.384-91.136-24.576-14.336-52.224-26.624-80.896-33.792-12.288 30.72-41.984 53.248-76.8 53.248-34.816 0-64.512-21.504-76.8-53.248-28.672 7.168-56.32 18.432-80.896 33.792 13.312 30.72 8.192 66.56-16.384 91.136-24.576 24.576-61.44 30.72-91.136 16.384-15.36 24.576-26.624 52.224-33.792 80.896 30.72 12.288 53.248 41.984 53.248 76.8 0 34.816-21.504 64.512-53.248 76.8 7.168 28.672 18.432 56.32 33.792 80.896 30.72-13.312 66.56-8.192 91.136 16.384 24.576 24.576 30.72 61.44 16.384 91.136 24.576 14.336 52.224 26.624 80.896 33.792 12.288-30.72 41.984-53.248 76.8-53.248 34.816 0 64.512 21.504 76.8 53.248 28.672-7.168 56.32-18.432 80.896-33.792-13.312-30.72-8.192-66.56 16.384-91.136 24.576-24.576 61.44-30.72 91.136-16.384 15.36-24.576 26.624-52.224 33.792-80.896-30.72-12.288-53.248-41.984-53.248-76.8zM734.208 759.808C654.336 759.808 588.8 694.272 588.8 614.4c0-79.872 65.536-145.408 145.408-145.408 79.872 0 145.408 65.536 145.408 145.408 0 80.896-64.512 145.408-145.408 145.408z" fill="#ffffff" p-id="13943"></path><path d="M734.208 614.4m-74.752 0a74.752 74.752 0 1 0 149.504 0 74.752 74.752 0 1 0-149.504 0Z" fill="#ffffff" p-id="13944"></path></svg></template>
+            <span>系统设置</span>
+          </a-menu-item>
         </a-menu>
       </a-layout-sider>
 
@@ -173,6 +177,7 @@
 import userInfo from "../../data/userInfo";
 import { router } from "../../router";
 import { notification } from "ant-design-vue";
+import { getSystemConfig } from "../../api/client/user";
 import { onMounted, reactive, toRefs, watch } from "vue";
 
 export default {
@@ -182,10 +187,21 @@ export default {
       theme: 'dark',
       selectedKey: '',
       isCollapsed: false,
-      isMobile: false
+      isMobile: false,
+      siteTitle: ''
     });
 
+    const fetchSystemConfig = () => {
+      getSystemConfig().then(res => {
+        if (res.code === 200 && res.data) {
+          state.siteTitle = res.data.siteTitle || '';
+        }
+      }).catch(() => {});
+    };
+
     onMounted(() => {
+      fetchSystemConfig();
+      
       const userData = userInfo.getUserInfo();
       if (userData && userData.expTime > Date.now()) {
         state.userInfo = userData;

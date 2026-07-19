@@ -16,7 +16,7 @@
         </div>
 
         <div class="login-info">
-          <h2 class="info-title">内网穿透</h2>
+          <h2 class="info-title">{{ systemConfig.siteTitle || '内网穿透' }}</h2>
           <p class="info-desc">无需公网IP，轻松实现内网服务外网访问</p>
 
           <div class="login-features">
@@ -98,10 +98,41 @@
                 登录
               </a-button>
             </a-form-item>
+
+            <a-form-item v-if="systemConfig.openRegister" class="login-register">
+              <span>还没有账号？</span>
+              <a href="#" class="register-link" @click.prevent="showRegister = true">立即注册</a>
+            </a-form-item>
           </a-form>
         </div>
       </div>
     </div>
+
+    <!-- 注册弹窗 -->
+    <a-modal v-model:visible="showRegister" title="用户注册" :footer="null">
+      <a-form ref="registerFormRef" :model="registerForm" :rules="registerRules">
+        <a-form-item label="用户名" name="username">
+          <a-input v-model:value="registerForm.username" placeholder="请输入用户名" />
+        </a-form-item>
+        <a-form-item label="密码" name="password">
+          <a-input-password v-model:value="registerForm.password" placeholder="请输入密码" />
+        </a-form-item>
+        <a-form-item label="确认密码" name="confirmPassword">
+          <a-input-password v-model:value="registerForm.confirmPassword" placeholder="请确认密码" />
+        </a-form-item>
+        <a-form-item label="邮箱" name="email">
+          <a-input v-model:value="registerForm.email" placeholder="请输入邮箱（选填）" />
+        </a-form-item>
+        <a-form-item label="备注" name="desc">
+          <a-input v-model:value="registerForm.desc" placeholder="请输入备注（选填）" />
+        </a-form-item>
+        <a-form-item>
+          <a-button type="primary" @click="handleRegister" :loading="registerLoading" block>
+            注册
+          </a-button>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -109,18 +140,34 @@
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { notification } from 'ant-design-vue';
-import { login } from "../../api/client/user";
+import { login, register, getSystemConfig } from "../../api/client/user";
 import userInfo from "../../data/userInfo";
 import { CheckCircleOutlined, LockOutlined, UserOutlined } from '@ant-design/icons-vue';
 
 const router = useRouter();
-const loginFormRef  = ref(null);
+const loginFormRef = ref(null);
+const registerFormRef = ref(null);
 const loading = ref(false);
+const registerLoading = ref(false);
 const rememberMe = ref(false);
+const showRegister = ref(false);
 
 const form = reactive({
   email: '',
   password: '',
+});
+
+const registerForm = reactive({
+  username: '',
+  password: '',
+  confirmPassword: '',
+  email: '',
+  desc: '',
+});
+
+const systemConfig = reactive({
+  siteTitle: '',
+  openRegister: false,
 });
 
 const rules = reactive({
@@ -133,7 +180,31 @@ const rules = reactive({
   ],
 });
 
+const registerRules = reactive({
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, message: '用户名长度不能少于3位', trigger: 'blur' },
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+  ],
+  confirmPassword: [
+    { required: true, message: '请确认密码', trigger: 'blur' },
+    {
+      validator: (_, value) => {
+        if (!value || registerForm.password === value) {
+          return Promise.resolve();
+        }
+        return Promise.reject(new Error('两次输入的密码不一致'));
+      },
+    },
+  ],
+});
+
 onMounted(() => {
+  fetchSystemConfig();
+
   const savedUser = localStorage.getItem('hp-lite-user');
   if (savedUser) {
     const { email, password, expTime } = JSON.parse(savedUser);
@@ -149,6 +220,15 @@ onMounted(() => {
     router.push("/client");
   }
 });
+
+const fetchSystemConfig = () => {
+  getSystemConfig().then(res => {
+    if (res.code === 200 && res.data) {
+      systemConfig.siteTitle = res.data.siteTitle || '';
+      systemConfig.openRegister = res.data.openRegister || false;
+    }
+  }).catch(() => {});
+};
 
 const handleSubmit = () => {
   loginFormRef.value.validate().then(() => {
@@ -182,6 +262,41 @@ const handleSubmit = () => {
       }
     }).catch(error => {
       loading.value = false;
+    });
+  }).catch(error => {
+    console.log('表单验证失败:', error);
+  });
+};
+
+const handleRegister = () => {
+  registerFormRef.value.validate().then(() => {
+    registerLoading.value = true;
+    register({
+      username: registerForm.username,
+      password: registerForm.password,
+      email: registerForm.email,
+      desc: registerForm.desc,
+    }).then(res => {
+      registerLoading.value = false;
+      if (res.code === 200) {
+        notification.success({
+          message: '注册成功',
+          description: '请使用用户名和密码登录',
+        });
+        showRegister.value = false;
+        registerForm.username = '';
+        registerForm.password = '';
+        registerForm.confirmPassword = '';
+        registerForm.email = '';
+        registerForm.desc = '';
+      } else {
+        notification.error({
+          message: '注册失败',
+          description: res.msg || '注册失败',
+        });
+      }
+    }).catch(error => {
+      registerLoading.value = false;
     });
   }).catch(error => {
     console.log('表单验证失败:', error);

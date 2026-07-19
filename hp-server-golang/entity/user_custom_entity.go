@@ -9,7 +9,11 @@ type UserCustomEntity struct {
 
 	Password string `json:"password"`
 
+	Email string `json:"email"`
+
 	Desc string `json:"desc"`
+
+	Status int `json:"status" gorm:"default:1"`
 
 	CreateTime time.Time `json:"createTime"`
 }
