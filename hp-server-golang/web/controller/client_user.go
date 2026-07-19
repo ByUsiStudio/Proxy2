@@ -35,7 +35,11 @@ func (receiver ClientUserController) Add(w http.ResponseWriter, r *http.Request)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		receiver.AddData(msg)
+		err = receiver.AddData(msg)
+		if err != nil {
+			json.NewEncoder(w).Encode(bean.ResError(err.Error()))
+			return
+		}
 		json.NewEncoder(w).Encode(bean.ResOk(nil))
 	}
 }

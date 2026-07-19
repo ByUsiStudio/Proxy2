@@ -10,22 +10,29 @@ import (
 type UserCustomService struct {
 }
 
-func (receiver *UserCustomService) AddData(custom entity.UserCustomEntity) {
+func (receiver *UserCustomService) AddData(custom entity.UserCustomEntity) error {
 	if custom.Id == nil {
 		custom.CreateTime = time.Now()
-		db.DB.Create(&custom)
+		if err := db.DB.Create(&custom).Error; err != nil {
+			return err
+		}
 	} else {
 		if custom.Password == "" {
-			db.DB.Model(&entity.UserCustomEntity{}).Where("id = ?", custom.Id).Updates(map[string]interface{}{
+			if err := db.DB.Model(&entity.UserCustomEntity{}).Where("id = ?", custom.Id).Updates(map[string]interface{}{
 				"username": custom.Username,
 				"email":    custom.Email,
 				"desc":     custom.Desc,
 				"status":   custom.Status,
-			})
+			}).Error; err != nil {
+				return err
+			}
 		} else {
-			db.DB.Save(&custom)
+			if err := db.DB.Save(&custom).Error; err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 func (receiver *UserCustomService) ListData(page int, pageSize int) *bean.ResPage {

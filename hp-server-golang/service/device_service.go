@@ -26,11 +26,13 @@ func (receiver *DeviceService) AddData(userId int, device bean.ReqDeviceInfo) er
 		return errors.New("设备编码已经存在")
 	}
 
-	db.DB.Save(&entity.UserDeviceEntity{
+	if err := db.DB.Save(&entity.UserDeviceEntity{
 		Remarks:   device.Desc,
 		UserId:    &userId,
 		DeviceKey: device.DeviceId,
-	})
+	}).Error; err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -73,7 +73,9 @@ func (receiver *UserSafeService) AddData(userId int, custom entity.UserSafeEntit
 		return err
 	}
 	custom.UserId = userId
-	db.DB.Save(&custom)
+	if err := db.DB.Save(&custom).Error; err != nil {
+		return err
+	}
 	safeRule.Delete(*custom.Id)
 	//查找使用了当前配置得穿透，进行重置
 	//重置反向代理

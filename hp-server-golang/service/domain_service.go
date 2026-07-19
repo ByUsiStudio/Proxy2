@@ -167,7 +167,9 @@ func (receiver *DomainService) AddData(userDomain entity.UserDomainEntity) error
 		if total > 0 {
 			return errors.New("域名已存在")
 		}
-		db.DB.Save(&userDomain)
+		if err := db.DB.Save(&userDomain).Error; err != nil {
+			return err
+		}
 		DOMAIN_INFO.Store(*userDomain.Domain, &userDomain)
 	} else {
 		//更新缓存

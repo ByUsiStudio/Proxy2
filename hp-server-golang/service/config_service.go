@@ -201,7 +201,9 @@ func (receiver *ConfigService) AddData(configEntity entity.UserConfigEntity) err
 	configEntity.UserId = deviceQuery.UserId
 	configEntity.ServerIp = config.ConfigData.Tunnel.IP
 	configEntity.ServerPort = &config.ConfigData.Tunnel.Port
-	db.DB.Save(&configEntity)
+	if err := db.DB.Save(&configEntity).Error; err != nil {
+		return err
+	}
 	NoticeClientUpdateData(configEntity.DeviceKey)
 	return nil
 }

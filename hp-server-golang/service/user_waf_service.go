@@ -47,7 +47,9 @@ func (receiver *UserWafService) AddData(custom entity.UserWafEntity) error {
 		return errors.New("配置不存在")
 	}
 	custom.UserId = deviceQuery.UserId
-	db.DB.Save(&custom)
+	if err := db.DB.Save(&custom).Error; err != nil {
+		return err
+	}
 	//刷新配置
 	service := ConfigService{}
 	_ = service.RefData(custom.ConfigId)
