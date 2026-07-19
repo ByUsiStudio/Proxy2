@@ -70,19 +70,18 @@ func (p *program) run() {
 
 // loadConfig 加载并解析配置文件
 func loadConfig() error {
-	// 处理配置文件路径（支持相对/绝对路径）
 	absPath, err := filepath.Abs(configPath)
 	if err != nil {
 		return fmt.Errorf("配置文件路径解析失败：%v", err)
 	}
 
-	// 读取配置文件
+	config.ConfigFilePath = absPath
+
 	data, err := os.ReadFile(absPath)
 	if err != nil {
 		return fmt.Errorf("读取配置文件失败：%v（路径：%s）", err, absPath)
 	}
 
-	// 解析YAML配置
 	if err := yaml.Unmarshal(data, &config.ConfigData); err != nil {
 		return fmt.Errorf("解析YAML配置失败：%v", err)
 	}

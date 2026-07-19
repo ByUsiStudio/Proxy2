@@ -140,7 +140,7 @@
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { notification } from 'ant-design-vue';
-import { login, register, getSystemConfig } from "../../api/client/user";
+import { login, register, getPublicConfig } from "../../api/client/user";
 import userInfo from "../../data/userInfo";
 import { CheckCircleOutlined, LockOutlined, UserOutlined } from '@ant-design/icons-vue';
 
@@ -222,7 +222,7 @@ onMounted(() => {
 });
 
 const fetchSystemConfig = () => {
-  getSystemConfig().then(res => {
+  getPublicConfig().then(res => {
     if (res.code === 200 && res.data) {
       systemConfig.siteTitle = res.data.siteTitle || '';
       systemConfig.openRegister = res.data.openRegister || false;

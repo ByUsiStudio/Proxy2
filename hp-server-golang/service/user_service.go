@@ -95,11 +95,18 @@ func (receiver *UserService) UpdateStatus(userId int, status int) error {
 	return nil
 }
 
+func (receiver *UserService) GetPublicConfig() map[string]interface{} {
+	return map[string]interface{}{
+		"siteTitle":    config.ConfigData.System.SiteTitle,
+		"openRegister": config.ConfigData.System.OpenRegister,
+	}
+}
+
 func (receiver *UserService) GetSystemConfig() *config.SystemConfig {
 	return &config.ConfigData.System
 }
 
 func (receiver *UserService) UpdateSystemConfig(sysConfig config.SystemConfig) error {
 	config.ConfigData.System = sysConfig
-	return nil
+	return config.SaveConfig()
 }

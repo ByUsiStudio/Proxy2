@@ -44,7 +44,7 @@
           <a-input allow-clear v-model:value="formState.email" placeholder="邮箱"/>
         </a-form-item>
         <a-form-item label="状态">
-          <a-switch v-model:checked="formState.status === 1"/>
+          <a-switch v-model:checked="statusChecked"/>
         </a-form-item>
         <a-form-item label="备注" name="desc">
           <a-input allow-clear v-model:value="formState.desc" placeholder="备注"/>
@@ -62,7 +62,7 @@
 <script setup>
 import {getUser, removeUser, saveUser} from "../../api/client/client_user";
 import {updateUserStatus} from "../../api/client/user";
-import {onMounted, reactive, ref} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
 import {notification} from "ant-design-vue";
 
 
@@ -77,6 +77,13 @@ const formState = reactive({
   desc: "",
   id: "",
   status: 1
+})
+
+const statusChecked = computed({
+  get: () => formState.status === 1,
+  set: (val) => {
+    formState.status = val ? 1 : 0
+  }
 })
 const pagination = reactive({
   total: 0,

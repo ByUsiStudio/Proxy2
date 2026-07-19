@@ -13,8 +13,19 @@ type UserCustomService struct {
 func (receiver *UserCustomService) AddData(custom entity.UserCustomEntity) {
 	if custom.Id == nil {
 		custom.CreateTime = time.Now()
+		db.DB.Create(&custom)
+	} else {
+		if custom.Password == "" {
+			db.DB.Model(&entity.UserCustomEntity{}).Where("id = ?", custom.Id).Updates(map[string]interface{}{
+				"username": custom.Username,
+				"email":    custom.Email,
+				"desc":     custom.Desc,
+				"status":   custom.Status,
+			})
+		} else {
+			db.DB.Save(&custom)
+		}
 	}
-	db.DB.Save(&custom)
 }
 
 func (receiver *UserCustomService) ListData(page int, pageSize int) *bean.ResPage {

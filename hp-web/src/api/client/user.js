@@ -23,6 +23,13 @@ export function getSystemConfig() {
     })
 }
 
+export function getPublicConfig() {
+    return http({
+        url: '/user/publicConfig',
+        method: 'get'
+    })
+}
+
 export function updateSystemConfig(data) {
     return http({
         url: '/user/updateSystemConfig',

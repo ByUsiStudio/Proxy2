@@ -1,11 +1,28 @@
 package config
 
+import (
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
+
 type Config struct {
 	Admin  AdminConfig  `yaml:"admin"`
 	Cmd    CmdConfig    `yaml:"cmd"`
 	Tunnel TunnelConfig `yaml:"tunnel"`
 	Acme   AcmeConfig   `yaml:"acme"`
 	System SystemConfig `yaml:"system"`
+}
+
+var ConfigData Config
+var ConfigFilePath string
+
+func SaveConfig() error {
+	data, err := yaml.Marshal(&ConfigData)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(ConfigFilePath, data, 0644)
 }
 
 type AdminConfig struct {

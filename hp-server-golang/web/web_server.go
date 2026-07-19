@@ -45,6 +45,7 @@ func StartWebServer(port int) {
 	mux.HandleFunc("/user/login", controller.LoginController{}.LoginHandler)
 	mux.HandleFunc("/user/register", controller.LoginController{}.RegisterHandler)
 	mux.HandleFunc("/user/systemConfig", controller.LoginController{}.SystemConfigHandler)
+	mux.HandleFunc("/user/publicConfig", controller.LoginController{}.PublicConfigHandler)
 	mux.HandleFunc("/user/updateUserStatus", controller.LoginController{}.UpdateUserStatusHandler)
 	mux.HandleFunc("/user/updateSystemConfig", controller.LoginController{}.UpdateSystemConfigHandler)
 	clientUserController := controller.ClientUserController{}

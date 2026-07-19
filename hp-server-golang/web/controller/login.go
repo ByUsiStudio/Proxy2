@@ -49,7 +49,18 @@ func (receiver LoginController) RegisterHandler(w http.ResponseWriter, r *http.R
 }
 
 func (receiver LoginController) SystemConfigHandler(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("token")
+	_, role, _, err := util.DecodeToken(token)
+	if err != nil || strings.Compare(role, "ADMIN") != 0 {
+		json.NewEncoder(w).Encode(bean.ResErrorCode(-2, "用户权限校验失败"))
+		return
+	}
 	config := receiver.GetSystemConfig()
+	json.NewEncoder(w).Encode(bean.ResOk(config))
+}
+
+func (receiver LoginController) PublicConfigHandler(w http.ResponseWriter, r *http.Request) {
+	config := receiver.GetPublicConfig()
 	json.NewEncoder(w).Encode(bean.ResOk(config))
 }
 
