@@ -90,7 +90,6 @@ chmod -R 777 ./hp-lite-amd64
 ./hp-lite-amd64 -c=连接码
 ```
 
-
 ## 运行截图
 <img src="docs/img/img_2.png"  />
 <img src="docs/img/img_3.png"  />
