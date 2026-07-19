@@ -99,9 +99,9 @@
               </a-button>
             </a-form-item>
 
-            <a-form-item v-if="systemConfig.openRegister" class="login-register">
+            <a-form-item class="login-register">
               <span>还没有账号？</span>
-              <a href="#" class="register-link" @click.prevent="showRegister = true">立即注册</a>
+              <a href="#" class="register-link" @click.prevent="handleRegisterClick">立即注册</a>
             </a-form-item>
           </a-form>
         </div>
@@ -228,6 +228,17 @@ const fetchSystemConfig = () => {
       systemConfig.openRegister = res.data.openRegister || false;
     }
   }).catch(() => {});
+};
+
+const handleRegisterClick = () => {
+  if (!systemConfig.openRegister) {
+    notification.info({
+      message: '注册未开启',
+      description: '当前系统未开启公开注册功能，请联系管理员',
+    });
+    return;
+  }
+  showRegister.value = true;
 };
 
 const handleSubmit = () => {

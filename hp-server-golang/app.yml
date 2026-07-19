@@ -17,7 +17,7 @@ acme:
 
 system:
   site-title: 'HP-Lite内网穿透' #站点标题，显示在登录页和后台顶部
-  open-register: false #是否开启公开注册
+  open-register: true #是否开启公开注册
   register-review: false #注册后是否需要审核
   smtp:
     enabled: false #是否启用SMTP邮件服务

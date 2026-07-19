@@ -42,7 +42,7 @@
             </p>
             <div class="hero-actions">
               <a-button size="large" ghost>
-                <a target="_blank" href="https://gitee.com/HServer/hp-lite">开源地址</a>
+                <a target="_blank" href="https://gitee.com/byusistudio/proxy2">开源地址</a>
               </a-button>
             </div>
           </div>
