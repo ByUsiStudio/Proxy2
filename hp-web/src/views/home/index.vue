@@ -75,7 +75,7 @@
       </div>
     </section>
 
-    <!-- 声明区 -->
+    <!-- 声明区
     <section class="policy" id="policy">
       <div class="container">
         <h2 class="section-title">项目许可声明（MIT License）</h2>
@@ -96,7 +96,7 @@
           <p>感谢您的支持与理解。</p>
         </div>
       </div>
-    </section>
+    </section> -->
 
     <!-- 联系区 -->
     <section class="contact" id="contact">
