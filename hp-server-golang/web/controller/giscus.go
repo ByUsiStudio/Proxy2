@@ -1,9 +1,10 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
-	"strings"
 )
 
 type GiscusController struct {
@@ -11,21 +12,34 @@ type GiscusController struct {
 
 func (receiver GiscusController) Token(w http.ResponseWriter, r *http.Request) {
 	session := r.URL.Query().Get("session")
-	if len(session) > 0 {
-		url := "https://giscus.app/api/oauth/token"
-		payload := strings.NewReader("{\"session\":\"" + session + "\"}")
-		req, _ := http.NewRequest("POST", url, payload)
-		req.Header.Add("Accept", "*/*")
-		req.Header.Add("Accept-Encoding", "gzip, deflate, br")
-		req.Header.Add("User-Agent", "PostmanRuntime-ApipostRuntime/1.1.0")
-		req.Header.Add("Connection", "keep-alive")
-		req.Header.Add("Content-Type", "application/json")
-		res, _ := http.DefaultClient.Do(req)
-		defer res.Body.Close()
-		body, _ := io.ReadAll(res.Body)
-		WriteOk(w, string(body))
-		return
-	} else {
+	if session == "" {
 		WriteError(w, "失败")
+		return
 	}
+
+	url := "https://giscus.app/api/oauth/token"
+	payload := map[string]string{"session": session}
+	jsonData, _ := json.Marshal(payload)
+
+	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonData))
+	if err != nil {
+		WriteError(w, "请求创建失败")
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		WriteError(w, "请求失败")
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		WriteError(w, "读取响应失败")
+		return
+	}
+	WriteOk(w, string(body))
 }
