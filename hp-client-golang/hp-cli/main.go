@@ -114,22 +114,36 @@ func parseConnectionCode(c string) (serverIp string, serverPort int, deviceId st
 	return serverIp, port, deviceId, nil
 }
 
+func parseServer(server string) (serverIp string, serverPort int, err error) {
+	if server == "" {
+		return "", 0, fmt.Errorf("服务器地址为空")
+	}
+	err, _, host, port := util.ProtocolInfo(server)
+	if err != nil {
+		return "", 0, fmt.Errorf("服务器地址解析失败：%v", err)
+	}
+	return host, port, nil
+}
+
 func main() {
-	// ########## 关键修复：只调用一次 flag.Parse() ##########
 	var (
 		c             string // 连接码
+		server        string // 服务器地址
+		deviceId      string // 设备ID
 		serviceAction string // 服务操作
 	)
 
-	// 1. 定义所有命令行参数（一次定义完成）
-	flag.StringVar(&c, "c", "", "连接码（必填，安装服务时固化）")
+	flag.StringVar(&c, "c", "", "连接码（与-server/-deviceId二选一）")
+	flag.StringVar(&server, "server", util.DefaultServer, "服务器地址（默认：https://pro2.cdifit.cn）")
+	flag.StringVar(&deviceId, "deviceId", "", "设备ID（与-server配合使用）")
 	flag.StringVar(&serviceAction, "action", "", "服务操作：install/start/stop/uninstall/status")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "使用方法：%s [参数]\n", os.Args[0])
 		fmt.Fprintln(os.Stderr, "参数说明：")
 		flag.PrintDefaults()
 		fmt.Fprintln(os.Stderr, "\n示例：")
-		fmt.Fprintln(os.Stderr, "  交互模式运行：", os.Args[0], "-c \"你的连接码\"")
+		fmt.Fprintln(os.Stderr, "  使用连接码：", os.Args[0], "-c \"你的连接码\"")
+		fmt.Fprintln(os.Stderr, "  使用服务器和设备ID：", os.Args[0], "-server \"https://pro2.cdifit.cn:443\" -deviceId \"设备ID\"")
 		fmt.Fprintln(os.Stderr, "  安装服务：", os.Args[0], "-c \"你的连接码\" -action install")
 		fmt.Fprintln(os.Stderr, "  启动服务：", os.Args[0], "-action start")
 		fmt.Fprintln(os.Stderr, "  停止服务：", os.Args[0], "-action stop")
@@ -137,68 +151,72 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  卸载服务：", os.Args[0], "-action uninstall")
 	}
 
-	// 2. 只解析一次！（这是解决问题的核心）
 	flag.Parse()
 
-	// ########## 处理连接码（分场景：服务操作 vs 正常运行）##########
 	var (
 		serverIp   string
 		serverPort int
-		deviceId   string
 		err        error
 	)
 
-	// 场景A：执行服务操作（install/start/stop/uninstall/status）
 	if serviceAction != "" {
 		switch serviceAction {
 		case "start", "stop", "status", "uninstall":
-			// 这些操作不需要 -c 参数（start 会使用安装时固化的参数）
-			// 但 status/uninstall 等操作需要验证服务是否存在，所以直接创建服务实例即可
 			break
 
 		case "install":
-			// 安装服务必须指定 -c 参数
-			if c == "" {
-				c = os.Getenv("c") // 从环境变量 fallback
-				if c == "" {
-					log.Fatal("错误：安装服务必须通过 -c 参数或 c 环境变量指定连接码")
+			if c != "" {
+				serverIp, serverPort, deviceId, err = parseConnectionCode(c)
+				if err != nil {
+					log.Fatalf("连接码解析失败：%v", err)
 				}
-			}
-			// 解析连接码（安装时验证连接码有效性）
-			serverIp, serverPort, deviceId, err = parseConnectionCode(c)
-			if err != nil {
-				log.Fatalf("连接码解析失败：%v", err)
+			} else if server != "" && deviceId != "" {
+				serverIp, serverPort, err = parseServer(server)
+				if err != nil {
+					log.Fatalf("服务器地址解析失败：%v", err)
+				}
+			} else {
+				log.Fatal("错误：安装服务必须通过 -c 参数或 -server/-deviceId 参数指定连接信息")
 			}
 
 		default:
 			log.Fatalf("无效的操作：%s，支持的操作：install/start/stop/uninstall/status", serviceAction)
 		}
-
-		// 场景B：无服务操作 → 交互模式运行（必须有连接码）
 	} else {
-		if c == "" {
-			c = os.Getenv("c")
-			if c == "" {
-				log.Fatal("错误：必须通过 -c 参数或 c 环境变量指定连接码")
+		if c != "" {
+			serverIp, serverPort, deviceId, err = parseConnectionCode(c)
+			if err != nil {
+				log.Fatalf("连接码解析失败：%v", err)
 			}
-		}
-		// 解析连接码
-		serverIp, serverPort, deviceId, err = parseConnectionCode(c)
-		if err != nil {
-			log.Fatalf("连接码解析失败：%v", err)
+		} else if server != "" && deviceId != "" {
+			serverIp, serverPort, err = parseServer(server)
+			if err != nil {
+				log.Fatalf("服务器地址解析失败：%v", err)
+			}
+		} else {
+			log.Fatal("错误：必须通过 -c 参数或 -server/-deviceId 参数指定连接信息")
 		}
 	}
 
 	// ########## 服务配置（固化连接码只在 install 时生效）##########
-	serviceConfig := &service.Config{
-		Name:        "hp-lite", // 服务唯一标识（不要修改）
-		DisplayName: "hp-lite", // 服务显示名称
-		Description: "hp-lite 命令行客户端服务，用于与中心服务器通信",
-		Arguments:   []string{"-c", c}, // 安装时固化 -c 参数，启动时自动传递
+	var serviceArgs []string
+	if c != "" {
+		serviceArgs = []string{"-c", c}
+	} else {
+		serviceArgs = []string{"-server", server, "-deviceId", deviceId}
 	}
-	// 如果是安装操作，更新服务描述（包含连接码，便于排查）
+	serviceConfig := &service.Config{
+		Name:        "hp-lite",
+		DisplayName: "hp-lite",
+		Description: "hp-lite 命令行客户端服务，用于与中心服务器通信",
+		Arguments:   serviceArgs,
+	}
 	if serviceAction == "install" {
-		serviceConfig.Description += "（连接码：" + c + "）"
+		if c != "" {
+			serviceConfig.Description += "（连接码：" + c + "）"
+		} else {
+			serviceConfig.Description += "（服务器：" + server + "，设备ID：" + deviceId + "）"
+		}
 	}
 
 	// ########## 创建服务实例 ##########
