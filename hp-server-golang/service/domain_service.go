@@ -144,10 +144,14 @@ func (receiver *DomainService) DomainListByKey(userId int, keyword string) *bean
 
 func (receiver *DomainService) RemoveData(id int) bool {
 	userQuery := &entity.UserDomainEntity{}
-	db.DB.Where("id = ? ", id).First(userQuery)
+	if err := db.DB.Where("id = ? ", id).First(userQuery).Error; err != nil {
+		log.Errorf("查询域名配置失败: %v", err)
+	}
 	if userQuery != nil {
 		var results entity.UserDomainEntity
-		db.DB.Where("id = ?", id).Delete(&results)
+		if err := db.DB.Where("id = ?", id).Delete(&results).Error; err != nil {
+			log.Errorf("删除域名配置失败: %v", err)
+		}
 		DOMAIN_INFO.Delete(*userQuery.Domain)
 		return true
 	}
@@ -179,7 +183,9 @@ func (receiver *DomainService) AddData(userDomain entity.UserDomainEntity) error
 			info.CertificateKey = userDomain.CertificateKey
 			info.CertificateContent = userDomain.CertificateContent
 		}
-		db.DB.Model(&entity.UserDomainEntity{}).Where("id = ?", userDomain.Id).Update("certificate_content", userDomain.CertificateContent).Update("certificate_key", userDomain.CertificateKey).Update("desc", userDomain.Desc)
+		if err := db.DB.Model(&entity.UserDomainEntity{}).Where("id = ?", userDomain.Id).Update("certificate_content", userDomain.CertificateContent).Update("certificate_key", userDomain.CertificateKey).Update("desc", userDomain.Desc).Error; err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -231,7 +237,9 @@ func (receiver *DomainService) GenSsl(sync bool, id int) bool {
 
 func (receiver *DomainService) UpdateData(id int, key, content string, domain string) {
 	//更新域名配置
-	db.DB.Model(&entity.UserDomainEntity{}).Where("id = ?", id).Update("certificate_key", key).Update("certificate_content", content)
+	if err := db.DB.Model(&entity.UserDomainEntity{}).Where("id = ?", id).Update("certificate_key", key).Update("certificate_content", content).Error; err != nil {
+		log.Errorf("更新域名证书失败: %v", err)
+	}
 	//更新缓存
 	value, ok := DOMAIN_INFO.Load(domain)
 	if ok {
@@ -242,5 +250,7 @@ func (receiver *DomainService) UpdateData(id int, key, content string, domain st
 }
 
 func (receiver *DomainService) UpdateStatus(id int, status string) {
-	db.DB.Model(&entity.UserDomainEntity{}).Where("id = ?", id).Update("status", status)
+	if err := db.DB.Model(&entity.UserDomainEntity{}).Where("id = ?", id).Update("status", status).Error; err != nil {
+		log.Errorf("更新域名状态失败: %v", err)
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"hp-server-lib/entity"
 	"hp-server-lib/ext"
 	"hp-server-lib/ext/forward"
+	"hp-server-lib/log"
 	"sync"
 )
 
@@ -119,7 +120,9 @@ func (receiver *ForwardService) ListData(userId int, page int, pageSize int) *be
 }
 
 func (receiver *ForwardService) RemoveData(id int) {
-	db.DB.Delete(&entity.UserFwdEntity{Id: &id})
+	if err := db.DB.Delete(&entity.UserFwdEntity{Id: &id}).Error; err != nil {
+		log.Errorf("删除转发配置失败: %v", err)
+	}
 	value, ok := FORWARD_CACHE.Load(id)
 	if ok {
 		proxy := value.(forward.ForwardProxy)

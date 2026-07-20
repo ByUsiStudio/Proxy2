@@ -4,6 +4,7 @@ import (
 	"hp-server-lib/bean"
 	"hp-server-lib/db"
 	"hp-server-lib/entity"
+	"hp-server-lib/log"
 	"time"
 )
 
@@ -44,5 +45,7 @@ func (receiver *UserCustomService) ListData(page int, pageSize int) *bean.ResPag
 }
 
 func (receiver *UserCustomService) RemoveData(id int) {
-	db.DB.Delete(&entity.UserCustomEntity{Id: &id})
+	if err := db.DB.Delete(&entity.UserCustomEntity{Id: &id}).Error; err != nil {
+		log.Errorf("删除用户失败: %v", err)
+	}
 }

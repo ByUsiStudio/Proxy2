@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"hp-server-lib/log"
 	"hp-server-lib/web/controller"
 	"net/http"
@@ -9,27 +8,28 @@ import (
 	"strconv"
 )
 
-// 全局异常拦截器中间件
-func recoveryMiddleware(next http.Handler) http.Handler {
+func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "*")
-		w.Header().Set("Access-Control-Allow-Credentials", "*")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, token")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func recoveryMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				// 捕获异常并记录日志
 				log.Errorf("服务器错误: %v\n栈情况: %s", err, string(debug.Stack()))
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, `{"error": "服务器错误", "message": "%v"}`, err)
+				controller.WriteErrorCode(w, http.StatusInternalServerError, "服务器内部错误")
 			}
 		}()
-		w.Header().Set("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
 	})
 }
@@ -100,6 +100,6 @@ func StartWebServer(port int) {
 	giscusController := controller.GiscusController{}
 	mux.HandleFunc("/client/giscus/token", giscusController.Token)
 
-	muxWithRecovery := recoveryMiddleware(mux)
-	log.Error(http.ListenAndServe(":"+strconv.Itoa(port), muxWithRecovery))
+	handler := corsMiddleware(recoveryMiddleware(mux))
+	log.Error(http.ListenAndServe(":"+strconv.Itoa(port), handler))
 }

@@ -1,71 +1,44 @@
 package controller
 
 import (
-	"encoding/json"
-	"hp-server-lib/bean"
 	"hp-server-lib/entity"
 	"hp-server-lib/service"
-	"hp-server-lib/util"
 	"net/http"
-	"strconv"
 )
 
 type ConfigController struct {
 	service.ConfigService
 }
 
-func (receiver ConfigController) getUserId(w http.ResponseWriter, r *http.Request) (int, error) {
-	token := r.Header.Get("token")
-	userId, _, _, err := util.DecodeToken(token)
-	if err != nil {
-		json.NewEncoder(w).Encode(bean.ResErrorCode(-2, "用户权限校验失败"))
-		return 0, err
-	}
-	return userId, nil
-}
-
 func (receiver ConfigController) GetDeviceKey(w http.ResponseWriter, r *http.Request) {
-	id, err := receiver.getUserId(w, r)
+	id, err := GetUserId(w, r)
 	if err == nil {
-		json.NewEncoder(w).Encode(bean.ResOk(receiver.DeviceKey(id)))
+		WriteOk(w, receiver.DeviceKey(id))
 	}
 }
 
 func (receiver ConfigController) GetConfigList(w http.ResponseWriter, r *http.Request) {
-	id, err := receiver.getUserId(w, r)
+	id, err := GetUserId(w, r)
 	if err == nil {
-		queryParams := r.URL.Query()
-		page := queryParams.Get("current")
-		pageSize := queryParams.Get("pageSize")
-		keyword := queryParams.Get("keyword")
-		pageInt, _ := strconv.Atoi(page)
-		pageSizeInt, _ := strconv.Atoi(pageSize)
-		if pageInt == 0 {
-			pageInt = 1
-		}
-		if pageSizeInt == 0 {
-			pageSizeInt = 10
-		}
-		json.NewEncoder(w).Encode(bean.ResOk(receiver.ConfigList(id, pageInt, pageSizeInt, keyword)))
+		pageInt, pageSizeInt := ParsePage(r)
+		keyword := r.URL.Query().Get("keyword")
+		WriteOk(w, receiver.ConfigList(id, pageInt, pageSizeInt, keyword))
 	}
 }
 
 func (receiver ConfigController) RemoveConfig(w http.ResponseWriter, r *http.Request) {
-	_, err := receiver.getUserId(w, r)
+	_, err := GetUserId(w, r)
 	if err == nil {
-		queryParams := r.URL.Query()
-		configId := queryParams.Get("configId")
-		configIdInt, _ := strconv.Atoi(configId)
-		json.NewEncoder(w).Encode(bean.ResOk(receiver.RemoveData(configIdInt)))
+		configIdInt := ParseIntParam(r, "configId")
+		WriteOk(w, receiver.RemoveData(configIdInt))
 	}
 }
 
 func (receiver ConfigController) Add(w http.ResponseWriter, r *http.Request) {
-	_, err := receiver.getUserId(w, r)
+	_, err := GetUserId(w, r)
 	if err == nil {
 		var msg entity.UserConfigEntity
-		// 解析请求体中的JSON数据
-		err := json.NewDecoder(r.Body).Decode(&msg)
+		err := DecodeBody(r, &msg)
 		if err != nil {
 			println(err.Error())
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -73,53 +46,48 @@ func (receiver ConfigController) Add(w http.ResponseWriter, r *http.Request) {
 		}
 		err = receiver.AddData(msg)
 		if err == nil {
-			json.NewEncoder(w).Encode(bean.ResOk(nil))
+			WriteOk(w, nil)
 			return
 		}
-		json.NewEncoder(w).Encode(bean.ResError(err.Error()))
+		WriteError(w, err.Error())
 	}
 }
 
 func (receiver ConfigController) Keyword(w http.ResponseWriter, r *http.Request) {
-	userId, err := receiver.getUserId(w, r)
+	userId, err := GetUserId(w, r)
 	if err == nil {
-		queryParams := r.URL.Query()
-		keyword := queryParams.Get("keyword")
+		keyword := r.URL.Query().Get("keyword")
 		data := receiver.KeywordData(userId, keyword)
 		if data != nil {
-			json.NewEncoder(w).Encode(bean.ResOk(data))
+			WriteOk(w, data)
 			return
 		}
-		json.NewEncoder(w).Encode(bean.ResOk(nil))
+		WriteOk(w, nil)
 	}
 }
 
 func (receiver ConfigController) RefConfig(w http.ResponseWriter, r *http.Request) {
-	_, err := receiver.getUserId(w, r)
+	_, err := GetUserId(w, r)
 	if err == nil {
-		queryParams := r.URL.Query()
-		configId := queryParams.Get("configId")
-		configIdInt, _ := strconv.Atoi(configId)
+		configIdInt := ParseIntParam(r, "configId")
 		err = receiver.RefData(configIdInt)
 		if err == nil {
-			json.NewEncoder(w).Encode(bean.ResOk(nil))
+			WriteOk(w, nil)
 			return
 		}
-		json.NewEncoder(w).Encode(bean.ResError(err.Error()))
+		WriteError(w, err.Error())
 	}
 }
 
 func (receiver ConfigController) ChangeStatus(w http.ResponseWriter, r *http.Request) {
-	_, err := receiver.getUserId(w, r)
+	_, err := GetUserId(w, r)
 	if err == nil {
-		queryParams := r.URL.Query()
-		configId := queryParams.Get("configId")
-		configIdInt, _ := strconv.Atoi(configId)
+		configIdInt := ParseIntParam(r, "configId")
 		err = receiver.ChangeStatusData(configIdInt)
 		if err == nil {
-			json.NewEncoder(w).Encode(bean.ResOk(nil))
+			WriteOk(w, nil)
 			return
 		}
-		json.NewEncoder(w).Encode(bean.ResError(err.Error()))
+		WriteError(w, err.Error())
 	}
 }

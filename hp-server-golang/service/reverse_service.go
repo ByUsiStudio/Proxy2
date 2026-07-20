@@ -4,6 +4,7 @@ import (
 	"hp-server-lib/bean"
 	"hp-server-lib/db"
 	"hp-server-lib/entity"
+	"hp-server-lib/log"
 	"sync"
 )
 
@@ -89,9 +90,13 @@ func (receiver *ReverseService) ListData(userId int, page int, pageSize int) *be
 
 func (receiver *ReverseService) RemoveData(id int) {
 	userQuery := &entity.UserReverseEntity{}
-	db.DB.Where("id = ? ", id).First(userQuery)
+	if err := db.DB.Where("id = ? ", id).First(userQuery).Error; err != nil {
+		log.Errorf("查询反向代理配置失败: %v", err)
+	}
 	if userQuery != nil {
 		DOMAIN_REVERSE_INFO.Delete(*userQuery.Domain)
 	}
-	db.DB.Delete(&entity.UserReverseEntity{Id: &id})
+	if err := db.DB.Delete(&entity.UserReverseEntity{Id: &id}).Error; err != nil {
+		log.Errorf("删除反向代理配置失败: %v", err)
+	}
 }

@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
-	"hp-server-lib/bean"
 	"io"
 	"net/http"
 	"strings"
@@ -12,8 +10,7 @@ type GiscusController struct {
 }
 
 func (receiver GiscusController) Token(w http.ResponseWriter, r *http.Request) {
-	queryParams := r.URL.Query()
-	session := queryParams.Get("session")
+	session := r.URL.Query().Get("session")
 	if len(session) > 0 {
 		url := "https://giscus.app/api/oauth/token"
 		payload := strings.NewReader("{\"session\":\"" + session + "\"}")
@@ -26,9 +23,9 @@ func (receiver GiscusController) Token(w http.ResponseWriter, r *http.Request) {
 		res, _ := http.DefaultClient.Do(req)
 		defer res.Body.Close()
 		body, _ := io.ReadAll(res.Body)
-		json.NewEncoder(w).Encode(bean.ResOk(string(body)))
+		WriteOk(w, string(body))
 		return
 	} else {
-		json.NewEncoder(w).Encode(bean.ResError("失败"))
+		WriteError(w, "失败")
 	}
 }

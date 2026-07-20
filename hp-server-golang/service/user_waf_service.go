@@ -5,6 +5,7 @@ import (
 	"hp-server-lib/bean"
 	"hp-server-lib/db"
 	"hp-server-lib/entity"
+	"hp-server-lib/log"
 	"net"
 )
 
@@ -111,11 +112,15 @@ func (receiver *UserWafService) ListData(userId int, page int, pageSize int) *be
 
 func (receiver *UserWafService) RemoveData(id int) {
 	userQuery := &entity.UserWafEntity{}
-	db.DB.Where("id = ? ", id).First(userQuery)
+	if err := db.DB.Where("id = ? ", id).First(userQuery).Error; err != nil {
+		log.Errorf("查询WAF配置失败: %v", err)
+	}
 	if userQuery != nil {
 		//刷新配置
 		service := ConfigService{}
 		_ = service.RefData(userQuery.ConfigId)
 	}
-	db.DB.Delete(&entity.UserWafEntity{Id: &id})
+	if err := db.DB.Delete(&entity.UserWafEntity{Id: &id}).Error; err != nil {
+		log.Errorf("删除WAF配置失败: %v", err)
+	}
 }

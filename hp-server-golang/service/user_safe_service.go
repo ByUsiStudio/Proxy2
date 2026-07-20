@@ -4,6 +4,7 @@ import (
 	"hp-server-lib/bean"
 	"hp-server-lib/db"
 	"hp-server-lib/entity"
+	"hp-server-lib/log"
 	"sync"
 	"time"
 
@@ -139,9 +140,13 @@ func (receiver *UserSafeService) ListData(userId int, page int, pageSize int) *b
 
 func (receiver *UserSafeService) RemoveData(id int) {
 	userQuery := &entity.UserSafeEntity{}
-	db.DB.Where("id = ? ", id).First(userQuery)
+	if err := db.DB.Where("id = ? ", id).First(userQuery).Error; err != nil {
+		log.Errorf("查询安全配置失败: %v", err)
+	}
 	if userQuery != nil {
-		db.DB.Delete(&entity.UserSafeEntity{Id: &id})
+		if err := db.DB.Delete(&entity.UserSafeEntity{Id: &id}).Error; err != nil {
+			log.Errorf("删除安全配置失败: %v", err)
+		}
 	}
 	safeRule.Delete(id)
 

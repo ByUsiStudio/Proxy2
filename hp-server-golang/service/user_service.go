@@ -91,7 +91,9 @@ func (receiver *UserService) UpdateStatus(userId int, status int) error {
 	if user.Id == nil {
 		return errors.New("用户不存在")
 	}
-	db.DB.Model(&entity.UserCustomEntity{}).Where("id = ?", userId).UpdateColumn("status", status)
+	if err := db.DB.Model(&entity.UserCustomEntity{}).Where("id = ?", userId).UpdateColumn("status", status).Error; err != nil {
+		return err
+	}
 	return nil
 }
 

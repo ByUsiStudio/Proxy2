@@ -48,7 +48,9 @@ func (receiver *DeviceService) UpdateData(device bean.ReqDeviceInfo) error {
 	if total != 1 {
 		return errors.New("设备编码不存在")
 	}
-	db.DB.Model(&entity.UserDeviceEntity{}).Where("device_Key = ?", device.DeviceId).Update("remarks", device.Desc)
+	if err := db.DB.Model(&entity.UserDeviceEntity{}).Where("device_Key = ?", device.DeviceId).Update("remarks", device.Desc).Error; err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -102,7 +104,9 @@ func (receiver *DeviceService) RemoveData(deviceKey string) error {
 	if configTotal > 0 {
 		return errors.New("设备被占用，请删除映射后再来")
 	}
-	db.DB.Where("device_Key = ?", deviceKey).Delete(&entity.UserDeviceEntity{})
+	if err := db.DB.Where("device_Key = ?", deviceKey).Delete(&entity.UserDeviceEntity{}).Error; err != nil {
+		return err
+	}
 	return nil
 }
 

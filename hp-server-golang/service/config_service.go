@@ -6,6 +6,7 @@ import (
 	"hp-server-lib/config"
 	"hp-server-lib/db"
 	"hp-server-lib/entity"
+	"hp-server-lib/log"
 	"hp-server-lib/util"
 	"net"
 	"strconv"
@@ -92,12 +93,18 @@ func (receiver *ConfigService) ConfigList(userId int, page int, pageSize int, ke
 
 func (receiver *ConfigService) RemoveData(configId int) bool {
 	//删除防火墙的配置
-	db.DB.Where("config_id = ?", configId).Delete(&entity.UserWafEntity{})
+	if err := db.DB.Where("config_id = ?", configId).Delete(&entity.UserWafEntity{}).Error; err != nil {
+		log.Errorf("删除WAF配置失败: %v", err)
+	}
 	userQuery := &entity.UserConfigEntity{}
-	db.DB.Where("id = ? ", configId).First(userQuery)
+	if err := db.DB.Where("id = ? ", configId).First(userQuery).Error; err != nil {
+		log.Errorf("查询配置失败: %v", err)
+	}
 	if userQuery != nil {
 		var results entity.UserConfigEntity
-		db.DB.Where("id = ?", configId).Delete(&results)
+		if err := db.DB.Where("id = ?", configId).Delete(&results).Error; err != nil {
+			log.Errorf("删除配置失败: %v", err)
+		}
 		NoticeClientUpdateData(userQuery.DeviceKey)
 		//关闭服务端口
 		ClosePortServer(*userQuery.RemotePort)
@@ -214,9 +221,13 @@ func (receiver *ConfigService) RefData(configId int) error {
 		return errors.New(err.Error())
 	}
 	userQuery := entity.UserConfigEntity{}
-	db.DB.Where("id = ? ", configId).First(&userQuery)
+	if err := db.DB.Where("id = ? ", configId).First(&userQuery).Error; err != nil {
+		return err
+	}
 	if userQuery.Id != nil {
-		db.DB.Model(&entity.UserConfigEntity{}).Where("id = ?", configId).UpdateColumn("status_msg", nil).UpdateColumn("config_key", newUUID.String())
+		if err := db.DB.Model(&entity.UserConfigEntity{}).Where("id = ?", configId).UpdateColumn("status_msg", nil).UpdateColumn("config_key", newUUID.String()).Error; err != nil {
+			return err
+		}
 		NoticeClientUpdateData(userQuery.DeviceKey)
 		return nil
 	} else {
@@ -226,7 +237,9 @@ func (receiver *ConfigService) RefData(configId int) error {
 
 func (receiver *ConfigService) ChangeStatusData(configId int) error {
 	userQuery := entity.UserConfigEntity{}
-	db.DB.Where("id = ? ", configId).First(&userQuery)
+	if err := db.DB.Where("id = ? ", configId).First(&userQuery).Error; err != nil {
+		return err
+	}
 	changeTmp := 1
 	if userQuery.Status == 1 {
 		changeTmp = 0
@@ -234,7 +247,9 @@ func (receiver *ConfigService) ChangeStatusData(configId int) error {
 		changeTmp = 1
 	}
 	if userQuery.Id != nil {
-		db.DB.Model(&entity.UserConfigEntity{}).Where("id = ?", configId).UpdateColumn("status", changeTmp)
+		if err := db.DB.Model(&entity.UserConfigEntity{}).Where("id = ?", configId).UpdateColumn("status", changeTmp).Error; err != nil {
+			return err
+		}
 		return receiver.RefData(configId)
 	}
 	return nil

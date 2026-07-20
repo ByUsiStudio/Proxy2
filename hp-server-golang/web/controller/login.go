@@ -1,14 +1,10 @@
 package controller
 
 import (
-	"encoding/json"
 	"hp-server-lib/bean"
 	"hp-server-lib/config"
 	"hp-server-lib/service"
-	"hp-server-lib/util"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
 type LoginController struct {
@@ -17,7 +13,7 @@ type LoginController struct {
 
 func (receiver LoginController) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var msg bean.ReqLogin
-	err := json.NewDecoder(r.Body).Decode(&msg)
+	err := DecodeBody(r, &msg)
 	if err != nil {
 		println(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -25,16 +21,16 @@ func (receiver LoginController) LoginHandler(w http.ResponseWriter, r *http.Requ
 	}
 	login := receiver.Login(msg)
 	if login != nil {
-		json.NewEncoder(w).Encode(bean.ResOk(login))
+		WriteOk(w, login)
 		return
 	} else {
-		json.NewEncoder(w).Encode(bean.ResError("登录失败，用户名或密码错误"))
+		WriteError(w, "登录失败，用户名或密码错误")
 	}
 }
 
 func (receiver LoginController) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	var msg bean.ReqRegister
-	err := json.NewDecoder(r.Body).Decode(&msg)
+	err := DecodeBody(r, &msg)
 	if err != nil {
 		println(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -42,60 +38,48 @@ func (receiver LoginController) RegisterHandler(w http.ResponseWriter, r *http.R
 	}
 	err = receiver.Register(msg)
 	if err == nil {
-		json.NewEncoder(w).Encode(bean.ResOk(nil))
+		WriteOk(w, nil)
 		return
 	}
-	json.NewEncoder(w).Encode(bean.ResError(err.Error()))
+	WriteError(w, err.Error())
 }
 
 func (receiver LoginController) SystemConfigHandler(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("token")
-	_, role, _, err := util.DecodeToken(token)
-	if err != nil || strings.Compare(role, "ADMIN") != 0 {
-		json.NewEncoder(w).Encode(bean.ResErrorCode(-2, "用户权限校验失败"))
+	if !CheckAdmin(w, r) {
 		return
 	}
 	config := receiver.GetSystemConfig()
-	json.NewEncoder(w).Encode(bean.ResOk(config))
+	WriteOk(w, config)
 }
 
 func (receiver LoginController) PublicConfigHandler(w http.ResponseWriter, r *http.Request) {
 	config := receiver.GetPublicConfig()
-	json.NewEncoder(w).Encode(bean.ResOk(config))
+	WriteOk(w, config)
 }
 
 func (receiver LoginController) UpdateUserStatusHandler(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("token")
-	_, role, _, err := util.DecodeToken(token)
-	if err != nil || strings.Compare(role, "ADMIN") != 0 {
-		json.NewEncoder(w).Encode(bean.ResErrorCode(-2, "用户权限校验失败"))
+	if !CheckAdmin(w, r) {
 		return
 	}
 
-	queryParams := r.URL.Query()
-	userId := queryParams.Get("userId")
-	status := queryParams.Get("status")
-	userIdInt, _ := strconv.Atoi(userId)
-	statusInt, _ := strconv.Atoi(status)
+	userIdInt := ParseIntParam(r, "userId")
+	statusInt := ParseIntParam(r, "status")
 
-	err = receiver.UpdateStatus(userIdInt, statusInt)
+	err := receiver.UpdateStatus(userIdInt, statusInt)
 	if err == nil {
-		json.NewEncoder(w).Encode(bean.ResOk(nil))
+		WriteOk(w, nil)
 		return
 	}
-	json.NewEncoder(w).Encode(bean.ResError(err.Error()))
+	WriteError(w, err.Error())
 }
 
 func (receiver LoginController) UpdateSystemConfigHandler(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("token")
-	_, role, _, err := util.DecodeToken(token)
-	if err != nil || strings.Compare(role, "ADMIN") != 0 {
-		json.NewEncoder(w).Encode(bean.ResErrorCode(-2, "用户权限校验失败"))
+	if !CheckAdmin(w, r) {
 		return
 	}
 
 	var sysConfig config.SystemConfig
-	err = json.NewDecoder(r.Body).Decode(&sysConfig)
+	err := DecodeBody(r, &sysConfig)
 	if err != nil {
 		println(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -104,8 +88,8 @@ func (receiver LoginController) UpdateSystemConfigHandler(w http.ResponseWriter,
 
 	err = receiver.UpdateSystemConfig(sysConfig)
 	if err == nil {
-		json.NewEncoder(w).Encode(bean.ResOk(nil))
+		WriteOk(w, nil)
 		return
 	}
-	json.NewEncoder(w).Encode(bean.ResError(err.Error()))
+	WriteError(w, err.Error())
 }
