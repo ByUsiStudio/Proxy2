@@ -1,8 +1,6 @@
 module hp-android-lib
 
-go 1.24.0
-
-toolchain go1.24.5
+go 1.25.0
 
 require hp-lib v1.0.0
 
@@ -28,14 +26,14 @@ require (
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/xtaci/smux v1.5.35 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/crypto v0.43.0 // indirect
-	golang.org/x/mobile v0.0.0-20251021151156-188f512ec823 // indirect
-	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/net v0.46.0 // indirect
-	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/crypto v0.54.0 // indirect
+	golang.org/x/mobile v0.0.0-20260709172247-6129f5bee9d5 // indirect
+	golang.org/x/mod v0.38.0 // indirect
+	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
-	golang.org/x/tools v0.38.0 // indirect
+	golang.org/x/tools v0.48.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
 )
 
