@@ -51,16 +51,14 @@ func InitDomainCache() {
 
 func (receiver *DomainService) DomainList(userId int, page int, pageSize int, keyword string) *bean.ResPage {
 	var results []*entity.UserDomainEntity
-	var total int64
 	query := db.DB.Model(&entity.UserDomainEntity{})
 	if userId > 0 {
 		query.Where("user_id = ?", userId)
 	}
 	if keyword != "" {
-		// 示例：匹配 username 或 config_name 字段，使用 LIKE 模糊查询
 		query = query.Where("desc LIKE ? OR domain LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
 	}
-	query.Order("id desc").Count(&total).Offset((page - 1) * pageSize).Limit(pageSize).Find(&results)
+	total, _ := PaginateWithQuery(query, page, pageSize, &results)
 	for _, data := range results {
 		if len(data.CertificateKey) > 0 && len(data.CertificateContent) > 0 {
 			// 解码 PEM 数据
@@ -97,19 +95,12 @@ func (receiver *DomainService) DomainList(userId int, page int, pageSize int, ke
 		for _, item := range results {
 			userIds = append(userIds, *item.UserId)
 		}
-		var users []*entity.UserCustomEntity
-		if err := db.DB.Model(&entity.UserCustomEntity{}).Where("id IN ?", userIds).Find(&users).Error; err == nil {
-			// 将查询结果转换成 map[int]User
-			userMap := make(map[int]*entity.UserCustomEntity)
-			for _, user := range users {
-				userMap[*user.Id] = user
-			}
-			for _, item := range results {
-				customEntity := userMap[*item.UserId]
-				if customEntity != nil {
-					item.Username = customEntity.Username
-					item.UserDesc = customEntity.Desc
-				}
+		userMap := GetUserMap(userIds)
+		for _, item := range results {
+			customEntity := userMap[*item.UserId]
+			if customEntity != nil {
+				item.Username = customEntity.Username
+				item.UserDesc = customEntity.Desc
 			}
 		}
 	}

@@ -105,32 +105,19 @@ func (receiver *UserSafeService) AddData(userId int, custom entity.UserSafeEntit
 
 func (receiver *UserSafeService) ListData(userId int, page int, pageSize int) *bean.ResPage {
 	var results []*entity.UserSafeEntity
-	var total int64
-	// 计算总记录数并执行分页查询
-	if userId < 0 {
-		db.DB.Model(&entity.UserSafeEntity{}).Order("id desc").Count(&total).Offset((page - 1) * pageSize).Limit(pageSize).Find(&results)
-	} else {
-		db.DB.Model(&entity.UserSafeEntity{}).Where("user_id = ?", userId).Order("id desc").Count(&total).Offset((page - 1) * pageSize).Limit(pageSize).Find(&results)
-	}
+	total, _ := PaginateQuery(&entity.UserSafeEntity{}, userId, page, pageSize, &results)
 
 	if userId < 0 {
 		var userIds []int
 		for _, item := range results {
 			userIds = append(userIds, item.UserId)
 		}
-		var users []*entity.UserCustomEntity
-		if err := db.DB.Model(&entity.UserCustomEntity{}).Where("id IN ?", userIds).Find(&users).Error; err == nil {
-			// 将查询结果转换成 map[int]User
-			userMap := make(map[int]*entity.UserCustomEntity)
-			for _, user := range users {
-				userMap[*user.Id] = user
-			}
-			for _, item := range results {
-				customEntity := userMap[item.UserId]
-				if customEntity != nil {
-					item.Username = customEntity.Username
-					item.UserDesc = customEntity.Desc
-				}
+		userMap := GetUserMap(userIds)
+		for _, item := range results {
+			customEntity := userMap[item.UserId]
+			if customEntity != nil {
+				item.Username = customEntity.Username
+				item.UserDesc = customEntity.Desc
 			}
 		}
 	}

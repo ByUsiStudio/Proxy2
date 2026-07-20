@@ -68,26 +68,17 @@ func (receiver *ConfigService) DeviceKey(userId int) []*bean.ResUserDeviceInfo {
 
 func (receiver *ConfigService) ConfigList(userId int, page int, pageSize int, keyword string) *bean.ResPage {
 	var results []entity.UserConfigEntity
-	var total int64
 
-	// 基础查询
 	query := db.DB.Model(&entity.UserConfigEntity{})
 	if userId >= 0 {
 		query = query.Where("user_id = ?", userId)
 	}
 	if keyword != "" {
-		// 示例：匹配 username 或 config_name 字段，使用 LIKE 模糊查询
 		query = query.Where("local_address LIKE ? OR remarks LIKE ? OR domain LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
 	}
 
-	// 分页查询
-	query.Order("id desc").
-		Count(&total).
-		Offset((page - 1) * pageSize).
-		Limit(pageSize).
-		Find(&results)
+	total, _ := PaginateWithQuery(query, page, pageSize, &results)
 
-	// 计算总记录数并执行分页查询
 	return bean.PageOk(total, results)
 }
 

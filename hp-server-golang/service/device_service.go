@@ -56,12 +56,7 @@ func (receiver *DeviceService) UpdateData(device bean.ReqDeviceInfo) error {
 
 func (receiver *DeviceService) ListData(userId int, page int, pageSize int) *bean.ResPage {
 	var results []entity.UserDeviceEntity
-	var total int64
-	if userId < 0 {
-		db.DB.Model(&entity.UserDeviceEntity{}).Order("id desc").Count(&total).Offset((page - 1) * pageSize).Limit(pageSize).Find(&results)
-	} else {
-		db.DB.Model(&entity.UserDeviceEntity{}).Where("user_id = ?", userId).Order("id desc").Count(&total).Offset((page - 1) * pageSize).Limit(pageSize).Find(&results)
-	}
+	total, _ := PaginateQuery(&entity.UserDeviceEntity{}, userId, page, pageSize, &results)
 	var result2 []*bean.ResDeviceInfo
 	var userIds []int
 	for _, item := range results {
@@ -78,19 +73,12 @@ func (receiver *DeviceService) ListData(userId int, page int, pageSize int) *bea
 	}
 
 	if userId < 0 {
-		var users []*entity.UserCustomEntity
-		if err := db.DB.Model(&entity.UserCustomEntity{}).Where("id IN ?", userIds).Find(&users).Error; err == nil {
-			// 将查询结果转换成 map[int]User
-			userMap := make(map[int]*entity.UserCustomEntity)
-			for _, user := range users {
-				userMap[*user.Id] = user
-			}
-			for _, item := range result2 {
-				customEntity := userMap[item.UserId]
-				if customEntity != nil {
-					item.Username = customEntity.Username
-					item.UserDesc = customEntity.Desc
-				}
+		userMap := GetUserMap(userIds)
+		for _, item := range result2 {
+			customEntity := userMap[item.UserId]
+			if customEntity != nil {
+				item.Username = customEntity.Username
+				item.UserDesc = customEntity.Desc
 			}
 		}
 	}

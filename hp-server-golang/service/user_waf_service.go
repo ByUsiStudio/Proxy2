@@ -59,29 +59,16 @@ func (receiver *UserWafService) AddData(custom entity.UserWafEntity) error {
 
 func (receiver *UserWafService) ListData(userId int, page int, pageSize int) *bean.ResPage {
 	var results []*entity.UserWafEntity
-	var total int64
-	// 计算总记录数并执行分页查询
-	if userId < 0 {
-		db.DB.Model(&entity.UserWafEntity{}).Order("id desc").Count(&total).Offset((page - 1) * pageSize).Limit(pageSize).Find(&results)
-	} else {
-		db.DB.Model(&entity.UserWafEntity{}).Where("user_id = ?", userId).Order("id desc").Count(&total).Offset((page - 1) * pageSize).Limit(pageSize).Find(&results)
-	}
+	total, _ := PaginateQuery(&entity.UserWafEntity{}, userId, page, pageSize, &results)
 	var configIds []int
 	for _, item := range results {
 		configIds = append(configIds, item.ConfigId)
 	}
-	var configItems []*entity.UserConfigEntity
-	if err := db.DB.Model(&entity.UserConfigEntity{}).Where("id IN ?", configIds).Find(&configItems).Error; err == nil {
-		// 将查询结果转换成 map[int]User
-		configMap := make(map[int]*entity.UserConfigEntity)
-		for _, conf := range configItems {
-			configMap[*conf.Id] = conf
-		}
-		for _, item := range results {
-			customEntity := configMap[item.ConfigId]
-			if customEntity != nil {
-				item.ConfigDesc = customEntity.Remarks
-			}
+	configMap := GetConfigMap(configIds)
+	for _, item := range results {
+		customEntity := configMap[item.ConfigId]
+		if customEntity != nil {
+			item.ConfigDesc = customEntity.Remarks
 		}
 	}
 
@@ -90,19 +77,12 @@ func (receiver *UserWafService) ListData(userId int, page int, pageSize int) *be
 		for _, item := range results {
 			userIds = append(userIds, *item.UserId)
 		}
-		var users []*entity.UserCustomEntity
-		if err := db.DB.Model(&entity.UserCustomEntity{}).Where("id IN ?", userIds).Find(&users).Error; err == nil {
-			// 将查询结果转换成 map[int]User
-			userMap := make(map[int]*entity.UserCustomEntity)
-			for _, user := range users {
-				userMap[*user.Id] = user
-			}
-			for _, item := range results {
-				customEntity := userMap[*item.UserId]
-				if customEntity != nil {
-					item.Username = customEntity.Username
-					item.UserDesc = customEntity.Desc
-				}
+		userMap := GetUserMap(userIds)
+		for _, item := range results {
+			customEntity := userMap[*item.UserId]
+			if customEntity != nil {
+				item.Username = customEntity.Username
+				item.UserDesc = customEntity.Desc
 			}
 		}
 	}
