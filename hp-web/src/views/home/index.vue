@@ -4,8 +4,8 @@
     <nav class="navbar" :class="{ 'scrolled': isScrolled }">
       <div class="container">
         <div class="navbar-logo" @click="scrollToTop">
-          <img src="/logo-back.png" alt="HP-Lite Logo">
-          <span class="navbar-logo-text">HP-Lite</span>
+          <img src="/logo-back.png" alt="Proxy2 Logo">
+          <span class="navbar-logo-text">Proxy2</span>
         </div>
 
         <div class="navbar-menu">
@@ -35,7 +35,7 @@
       <div class="container">
         <div class="hero-content">
           <div class="hero-text">
-            <h1 class="hero-title">HP-Lite内网穿透</h1>
+            <h1 class="hero-title">Proxy2内网穿透</h1>
             <p class="hero-subtitle">
               无需公网IP、无需路由器端口映射，让内网应用随时可以
               通过域名进行外网访问
@@ -104,7 +104,7 @@
         <h2 class="section-title">联系我们</h2>
         <div class="contact-content">
           <div class="contact-info">
-            <span>QQ群：1065301527</span>
+            <span>QQ群：819479864</span>
           </div>
           <div class="contact-note">
             本站默认用户都具有互联网基础知识，和阅读文档能力，如果您阅读文档后仍对本产品有使用上的疑问，
@@ -117,7 +117,7 @@
     <!-- 页脚 -->
     <footer class="footer">
       <div class="container">
-        <p>&copy; 2025-{{new Date().getFullYear()}} HP-Lite 内网穿透项目</p>
+        <p>&copy; 2025-{{new Date().getFullYear()}} Proxy2 内网穿透项目</p>
       </div>
       <div>
         全网数据平台合计统计

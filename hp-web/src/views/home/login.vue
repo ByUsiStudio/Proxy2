@@ -11,8 +11,8 @@
       <!-- 左侧品牌区 -->
       <div class="login-card-left">
         <div class="login-logo">
-          <img src="/logo-back.png" alt="HP-Lite Logo" class="logo-image">
-          <span class="logo-text">HP-Lite</span>
+          <img src="/logo-back.png" alt="Proxy2 Logo" class="logo-image">
+          <span class="logo-text">Proxy2</span>
         </div>
 
         <div class="login-info">
