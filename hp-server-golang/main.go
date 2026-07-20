@@ -179,6 +179,12 @@ func main() {
 		syslog.Fatalf("日志初始化失败：%v", err)
 	}
 	log.Log = logger
+
+	// 交互模式实时输出到控制台；服务模式下彩色码可能造成日志文件乱码
+	if !daemon.Interactive() {
+		log.DisableColor()
+	}
+
 	// 执行服务操作
 	switch serviceAction {
 	case "install":
@@ -230,9 +236,25 @@ func main() {
 
 	case "":
 		// 无操作 → 交互模式运行
-		syslog.Printf("🚀 以交互模式启动（配置文件：%s）", configPath)
+		printBanner(configPath, workDir)
 		if err := s.Run(); err != nil {
 			syslog.Fatalf("交互模式运行失败：%v", err)
 		}
 	}
+}
+
+// printBanner 输出启动横幅
+func printBanner(cfg string, workDir string) {
+	banner := `
+ ____              __ _ ____              _    __   __
+|  _ \ _   _ _ __ / _(_)___ \ _   _  ___| |_  \ \ / /
+| |_) | | | | '__| |_| | __) | | | |/ __| __|  \ V /
+|  __/| |_| | |  |  _| |/ __/| |_| | (__| |_    | |
+|_|    \__,_|_|  |_| |_|_____|\__,_|\___|\__|   |_|
+`
+	fmt.Println("\x1b[36m" + banner + "\x1b[0m")
+	fmt.Printf("\x1b[36m::\x1b[0m \x1b[37mProxy2 Server\x1b[0m \x1b[90m(v6.0)\x1b[0m\n")
+	fmt.Printf("\x1b[36m::\x1b[0m \x1b[90m配置文件: \x1b[37m%s\x1b[0m\n", cfg)
+	fmt.Printf("\x1b[36m::\x1b[0m \x1b[90m工作目录: \x1b[37m%s\x1b[0m\n", workDir)
+	fmt.Println()
 }
