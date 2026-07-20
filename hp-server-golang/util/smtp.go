@@ -80,16 +80,16 @@ func SendEmail(to, subject, body string) error {
 }
 
 func SendRegisterEmail(email, username string) error {
-	subject := "欢迎注册HP-Lite内网穿透"
+	subject := "欢迎注册Proxy2内网穿透"
 	body := fmt.Sprintf(`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-	<h2 style="color: #4b6ff6;">欢迎注册HP-Lite内网穿透</h2>
+	<h2 style="color: #4b6ff6;">欢迎注册Proxy2内网穿透</h2>
 	<p>尊敬的 %s，</p>
-	<p>感谢您注册HP-Lite内网穿透服务！</p>
+	<p>感谢您注册Proxy2内网穿透服务！</p>
 	<p>您的用户名：%s</p>
 	<p>如有任何问题，请联系管理员。</p>
 	<p>祝您使用愉快！</p>
 	<hr>
-	<p style="color: #888; font-size: 12px;">HP-Lite内网穿透团队</p>
+	<p style="color: #888; font-size: 12px;">Proxy2内网穿透团队</p>
 </div>`, username, username)
 	return SendEmail(email, subject, body)
 }

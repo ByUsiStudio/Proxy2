@@ -37,7 +37,7 @@ func main() {
 	deviceId := ""
 
 	a := app.New()
-	w := a.NewWindow("HP-LITE映射工具")
+	w := a.NewWindow("Proxy2映射工具")
 
 	connectCode := widget.NewEntry()
 	connectCode.SetPlaceHolder("请输入连接码")

@@ -4,7 +4,7 @@ admin:
   port: 9090 #管理后台监听的端口（TCP传输方式）
 
 cmd:
-  port: 6666 #控制指令端口，所有HP-lite 客户端需要连接这个端口（TCP传输方式）
+  port: 6666 #控制指令端口，所有Proxy2客户端需要连接这个端口（TCP传输方式） 
 
 tunnel:
   ip: '192.168.0.217' #隧道监听服务器外网的IP（记得改成你的服务器IP或者解析的域名也可以）
@@ -16,7 +16,7 @@ acme:
   http-port: '5634' #证书验证会访问http接口，会通过80转发过来，所以这个端口不用暴露外网
 
 system:
-  site-title: 'HP-Lite内网穿透' #站点标题，显示在登录页和后台顶部
+  site-title: 'Proxy2内网穿透' #站点标题，显示在登录页和后台顶部
   open-register: true #是否开启公开注册
   register-review: false #注册后是否需要审核
   smtp:
@@ -26,5 +26,5 @@ system:
     username: 'email@example.com' #SMTP账号
     password: 'password' #SMTP密码
     from: 'email@example.com' #发件人邮箱
-    from-name: 'HP-Lite' #发件人名称
+    from-name: 'Proxy2' #发件人名称
     enable-ssl: false #是否启用SSL

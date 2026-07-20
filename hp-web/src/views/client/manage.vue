@@ -7,7 +7,7 @@
         <div class="logo">
           <a href="/" class="logo-link">
             <img src="/logo-back.png" class="logo-img" alt="HP-Lite">
-            <span class="logo-text">{{ siteTitle || 'HP-Lite内网穿透' }}</span>
+            <span class="logo-text">{{ siteTitle || 'Proxy2内网穿透' }}</span>
           </a>
         </div>
 
