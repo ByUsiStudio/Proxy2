@@ -35,6 +35,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.aar'], dir: 'libs')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     //----------AndroidX 版本
     //app-updater
     implementation 'com.github.jenly1314.AppUpdater:app-updater:1.2.0'
