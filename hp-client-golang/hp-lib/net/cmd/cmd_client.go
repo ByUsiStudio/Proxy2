@@ -1,10 +1,6 @@
 package cmd
 
-import (
-	net2 "hp-lib/net/hp"
-)
-
-var version = "hp-lite:6.0"
+var version = version.ClientVersion
 
 type CmdClient struct {
 	CallMsg    func(message string)

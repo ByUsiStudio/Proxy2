@@ -10,6 +10,7 @@ import (
 	"hp-server-lib/net/server"
 	"hp-server-lib/service"
 	"hp-server-lib/task"
+	"hp-server-lib/version"
 	"hp-server-lib/web"
 	"os"
 
@@ -212,7 +213,7 @@ func printBanner(cfg string, workDir string) {
                      |___/
 `
 	fmt.Println("\x1b[36m" + banner + "\x1b[0m")
-	fmt.Printf("\x1b[36m::\x1b[0m \x1b[37mProxy2 Server\x1b[0m \x1b[90m(v6.0)\x1b[0m\n")
+	fmt.Printf("\x1b[36m::\x1b[0m \x1b[37mProxy2 Server\x1b[0m \x1b[90m(v%s)\x1b[0m\n", version.Version)
 	fmt.Printf("\x1b[36m::\x1b[0m \x1b[90m配置文件: \x1b[37m%s\x1b[0m\n", cfg)
 	fmt.Printf("\x1b[36m::\x1b[0m \x1b[90m工作目录: \x1b[37m%s\x1b[0m\n", workDir)
 	fmt.Println()
