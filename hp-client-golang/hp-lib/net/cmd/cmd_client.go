@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"hp-lib/net/hp"
-	"hp-lib/version"
+	net2 "hp-lib/net/hp"
+	bdclientbbh "hp-lib/version"
 )
 
-var version = version.ClientVersion
+var version = bdclientbbh.ClientVersion
 
 type CmdClient struct {
 	CallMsg    func(message string)
