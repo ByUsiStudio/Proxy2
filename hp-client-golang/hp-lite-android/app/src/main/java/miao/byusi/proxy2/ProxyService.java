@@ -45,30 +45,26 @@ public class ProxyService extends Service {
         handler = new StatusHandler(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            int importance = NotificationManager.IMPORTANCE_LOW;
             NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
             notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+            }
         } else {
             notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         }
 
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Builder builder = createNotificationBuilder("服务已启动");
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setContentTitle("Proxy2")
-                .setContentText("服务已经运行")
-                .setContentIntent(pendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
         startForeground(NOTIFICATION_ID, builder.build());
 
+        // 获取 WakeLock
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Proxy2:WakeLock");
         wakeLock.acquire();
 
+        // 定时检查状态
         runnableCode = new Runnable() {
             @Override
             public void run() {
@@ -86,12 +82,31 @@ public class ProxyService extends Service {
         };
     }
 
-    private void updateNotification(String message) {
+    private NotificationCompat.Builder createNotificationBuilder(String contentText) {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ?
+                        PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE :
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
-                .setContentTitle("Proxy2")
-                .setContentText(message)
                 .setSmallIcon(R.drawable.ic_launcher)
-                .setPriority(NotificationCompat.PRIORITY_LOW);
+                .setContentTitle("Proxy2")
+                .setContentText(contentText)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setOngoing(true);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE);
+        }
+
+        return builder;
+    }
+
+    private void updateNotification(String message) {
+        if (notificationManager == null) return;
+        NotificationCompat.Builder builder = createNotificationBuilder(message);
         notificationManager.notify(NOTIFICATION_ID, builder.build());
     }
 
@@ -133,23 +148,45 @@ public class ProxyService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                if (manager != null && manager.getActiveNotifications().length == 0) {
+                    NotificationCompat.Builder builder = createNotificationBuilder("服务已启动");
+                    startForeground(NOTIFICATION_ID, builder.build());
+                }
+            }
+
             if (!isStart) {
                 isStart = true;
                 String connect = SharedPreferencesUtil.getString(getApplicationContext(), ConstConfig.CONNECT, "");
                 Log.i("Proxy2", "Start command with connect: " + connect);
 
+                if (connect == null || connect.trim().isEmpty()) {
+                    Log.e("Proxy2", "Connect code is empty!");
+                    updateNotification("连接码为空，请设置");
+                    return START_STICKY;
+                }
+
                 new Thread(() -> {
                     try {
+                        Log.i("Proxy2", "Calling Hp_android_lib.start...");
                         Hp_android_lib.start(connect, new Callback() {
                             @Override
                             public void sendResult(String s) {
                                 Log.i("Proxy2", "Callback result: " + s);
                                 sendBroadcastMessage(s);
+                                if (s != null && s.contains("成功")) {
+                                    updateNotification("代理运行中 - " + s);
+                                } else if (s != null && s.contains("失败")) {
+                                    updateNotification("代理错误 - " + s);
+                                }
                             }
                         });
+                        Log.i("Proxy2", "Hp_android_lib.start completed");
                     } catch (Exception e) {
                         Log.e("Proxy2", "Hp_android_lib.start error: ", e);
                         sendBroadcastMessage("启动失败: " + e.getMessage());
+                        updateNotification("启动失败: " + e.getMessage());
                     }
                 }).start();
 
@@ -157,6 +194,7 @@ public class ProxyService extends Service {
             }
         } catch (Throwable e) {
             Log.e("Proxy2", "onStartCommand error: ", e);
+            updateNotification("服务异常: " + e.getMessage());
         }
         return START_STICKY;
     }
@@ -174,6 +212,7 @@ public class ProxyService extends Service {
 
     @Override
     public void onDestroy() {
+        Log.i("Proxy2", "Service onDestroy");
         isStart = false;
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
