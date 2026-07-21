@@ -1,9 +1,9 @@
 package hp_android_lib
 
 import (
+	"hp-lib/log"
 	"hp-lib/net/cmd"
 	"hp-lib/util"
-	"log"
 	"strconv"
 	"strings"
 	"time"

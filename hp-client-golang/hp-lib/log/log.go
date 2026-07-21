@@ -159,3 +159,21 @@ func Warnf(format string, a ...interface{}) {
 func Debugf(format string, a ...interface{}) {
 	writeLine(LevelDebug, fmt.Sprintf(format, a...))
 }
+
+func Fatal(v ...interface{}) {
+	writeLine(LevelError, fmt.Sprint(v...))
+	os.Exit(1)
+}
+
+func Fatalf(format string, a ...interface{}) {
+	writeLine(LevelError, fmt.Sprintf(format, a...))
+	os.Exit(1)
+}
+
+func Printf(format string, a ...interface{}) {
+	writeLine(LevelInfo, fmt.Sprintf(format, a...))
+}
+
+func Println(v ...interface{}) {
+	writeLine(LevelInfo, fmt.Sprint(v...))
+}

@@ -1,33 +1,35 @@
 package http
 
 import (
+	"hp-server-lib/config"
 	"hp-server-lib/log"
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
 func getClientIP(r *http.Request) string {
-	// 如果请求头中包含 X-Forwarded-For，返回其第一个 IP 地址
 	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
-		// X-Forwarded-For 是以逗号分隔的 IP 地址列表，第一个是客户端的真实 IP
 		parts := strings.Split(forwarded, ",")
 		return strings.TrimSpace(parts[0])
 	}
-	// 如果没有 X-Forwarded-For 头部，则使用 RemoteAddr 获取客户端 IP
 	host, _, _ := net.SplitHostPort(r.RemoteAddr)
 	return host
 }
 
 func StartHttpServer() {
 	mux := http.NewServeMux()
-	// 使用反向代理处理所有请求
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		Handler(w, r)
 	})
+	port := config.ConfigData.Tunnel.HttpPort
+	if port <= 0 {
+		port = 80
+	}
 	log.Info("HTTP代理服务启动")
-	err := http.ListenAndServe(":80", mux)
+	err := http.ListenAndServe(":"+strconv.Itoa(port), mux)
 	if err != nil {
 		log.Errorf("HTTP代理服务启动失败: %v", err)
 		os.Exit(1)

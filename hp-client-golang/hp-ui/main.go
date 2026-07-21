@@ -1,18 +1,19 @@
 package main
 
 import (
+	"hp-lib/log"
+	"hp-lib/net/cmd"
+	"hp-lib/util"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/flopp/go-findfont"
-	"hp-lib/net/cmd"
-	"hp-lib/util"
-	"log"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 func init() {

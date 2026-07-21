@@ -2,7 +2,8 @@ package bean
 
 import (
 	"encoding/json"
-	"log"
+
+	"hp-lib/log"
 )
 
 type LocalInnerWear struct {

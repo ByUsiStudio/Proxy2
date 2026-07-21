@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"hp-lib/log"
 	"hp-lib/net/cmd"
 	"hp-lib/util"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -14,10 +14,6 @@ import (
 	"github.com/kardianos/service"
 )
 
-// win-> eventvwr.msc
-var logger service.Logger
-
-// 定义服务配置
 type program struct {
 	serverIp   string
 	serverPort int
@@ -26,38 +22,34 @@ type program struct {
 	stopChan   chan struct{}
 }
 
-// 实现 service.Interface 接口的 Start 方法
 func (p *program) Start(s service.Service) error {
 	if service.Interactive() {
-		logger.Info("服务以交互模式启动")
+		log.Info("服务以交互模式启动")
 	} else {
-		logger.Info("服务启动成功")
+		log.Info("服务启动成功")
 	}
 	go p.run()
 	return nil
 }
 
-// 实现 service.Interface 接口的 Stop 方法
 func (p *program) Stop(s service.Service) error {
 	if service.Interactive() {
-		logger.Info("服务以交互模式停止")
+		log.Info("服务以交互模式停止")
 	} else {
-		logger.Info("服务正在停止")
+		log.Info("服务正在停止")
 	}
 	close(p.stopChan)
 	return nil
 }
 
-// 服务核心运行逻辑
 func (p *program) run() {
 	p.cmdClient = cmd.NewCmdClient(func(message string) {
-		logger.Info(message)
+		log.Info(message)
 	})
 
 	p.cmdClient.Connect(p.serverIp, p.serverPort, p.deviceId)
-	logger.Infof("已连接到服务器 %s:%d (设备ID: %s)", p.serverIp, p.serverPort, p.deviceId)
+	log.Infof("已连接到服务器 %s:%d (设备ID: %s)", p.serverIp, p.serverPort, p.deviceId)
 
-	// 重连循环
 	go func() {
 		ticker := time.NewTicker(10 * time.Second)
 		defer ticker.Stop()
@@ -66,21 +58,20 @@ func (p *program) run() {
 			select {
 			case <-ticker.C:
 				if !p.cmdClient.GetStatus() {
-					logger.Info("与服务器断开连接，正在重连...")
+					log.Info("与服务器断开连接，正在重连...")
 					p.cmdClient.Connect(p.serverIp, p.serverPort, p.deviceId)
 				}
 			case <-p.stopChan:
-				logger.Info("重连循环已停止")
+				log.Info("重连循环已停止")
 				return
 			}
 		}
 	}()
 
 	<-p.stopChan
-	logger.Info("服务核心逻辑已停止")
+	log.Info("服务核心逻辑已停止")
 }
 
-// 解析连接码并返回服务器信息
 func parseConnectionCode(c string) (serverIp string, serverPort int, deviceId string, err error) {
 	if c == "" {
 		return "", 0, "", fmt.Errorf("连接码为空")
@@ -127,10 +118,10 @@ func parseServer(server string) (serverIp string, serverPort int, err error) {
 
 func main() {
 	var (
-		c             string // 连接码
-		server        string // 服务器地址
-		deviceId      string // 设备ID
-		serviceAction string // 服务操作
+		c             string
+		server        string
+		deviceId      string
+		serviceAction string
 	)
 
 	flag.StringVar(&c, "c", "", "连接码（与-server/-deviceId二选一）")
@@ -198,7 +189,6 @@ func main() {
 		}
 	}
 
-	// ########## 服务配置（固化连接码只在 install 时生效）##########
 	var serviceArgs []string
 	if c != "" {
 		serviceArgs = []string{"-c", c}
@@ -219,8 +209,6 @@ func main() {
 		}
 	}
 
-	// ########## 创建服务实例 ##########
-	// 注意：start/stop/status/uninstall 时，serverIp 等可能为空，但不影响服务操作
 	prg := &program{
 		serverIp:   serverIp,
 		serverPort: serverPort,
@@ -233,13 +221,10 @@ func main() {
 		log.Fatalf("服务创建失败：%v", err)
 	}
 
-	// 初始化日志
-	logger, err = s.Logger(nil)
-	if err != nil {
-		log.Fatalf("日志初始化失败：%v", err)
+	if !service.Interactive() {
+		log.DisableColor()
 	}
 
-	// ########## 执行服务操作 ##########
 	switch serviceAction {
 	case "install":
 		err = s.Install()
@@ -293,7 +278,6 @@ func main() {
 		}
 
 	case "":
-		// 无操作 → 交互模式运行
 		log.Printf("🚀 以交互模式启动（服务器：%s:%d，设备ID：%s）", serverIp, serverPort, deviceId)
 		err = s.Run()
 		if err != nil {

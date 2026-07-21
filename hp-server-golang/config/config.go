@@ -1,10 +1,14 @@
 package config
 
 import (
+	"embed"
 	"os"
 
 	"gopkg.in/yaml.v3"
 )
+
+//go:embed default.yml
+var defaultConfigFS embed.FS
 
 type Config struct {
 	Admin  AdminConfig  `yaml:"admin"`
@@ -16,6 +20,35 @@ type Config struct {
 
 var ConfigData Config
 var ConfigFilePath string
+
+func LoadConfig(path string) error {
+	ConfigFilePath = path
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		if err := generateDefaultConfig(path); err != nil {
+			return err
+		}
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	if err := yaml.Unmarshal(data, &ConfigData); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func generateDefaultConfig(path string) error {
+	data, err := defaultConfigFS.ReadFile("default.yml")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0644)
+}
 
 func SaveConfig() error {
 	data, err := yaml.Marshal(&ConfigData)
@@ -39,6 +72,8 @@ type TunnelConfig struct {
 	IP         string `yaml:"ip"`
 	Port       int    `yaml:"port"`
 	OpenDomain bool   `yaml:"open-domain"`
+	HttpPort   int    `yaml:"http-port"`
+	HttpsPort  int    `yaml:"https-port"`
 }
 
 type AcmeConfig struct {

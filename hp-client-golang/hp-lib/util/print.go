@@ -3,7 +3,7 @@ package util
 import (
 	"bytes"
 	"hp-lib/bean"
-	"log"
+	"hp-lib/log"
 	"strconv"
 
 	"github.com/olekukonko/tablewriter"
@@ -12,7 +12,7 @@ import (
 )
 
 func Print(msg string) {
-	log.Println(msg)
+	log.Info(msg)
 }
 
 func PrintStatus(data []*bean.LocalInnerWear) string {
