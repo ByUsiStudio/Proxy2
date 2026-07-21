@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">HP-Lite</string>
+    <string name="app_name">Proxy2内网穿透</string>
     <string name="action_settings">配置连接</string>
     <string name="action_about">关于</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">HP-Lite</string>
+    <string name="first_fragment_label">Proxy2内网穿透</string>
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>

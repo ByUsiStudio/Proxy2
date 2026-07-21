@@ -10,4 +10,5 @@ node_modules
 /*.db
 /queue
 static/
-*.aar
+hp_android_lib.aar
+hp_android_lib-sources.jar
