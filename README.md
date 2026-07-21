@@ -1,7 +1,4 @@
 <p align="center">
-<img src="/docs/img/logo.png" width="200" />
-</p>
-<p align="center">
     <a >
         <img src="https://img.shields.io/badge/hp_lite-6.0-red.svg?style=flat" />
     </a>
@@ -84,12 +81,3 @@ chmod -R 777 ./hp-lite-amd64
 #方式2
 ./hp-lite-amd64 -c=连接码
 ```
-
-## 运行截图
-<img src="docs/img/img_2.png"  />
-<img src="docs/img/img_3.png"  />
-<img src="docs/img/img_7.png"  />
-<img src="docs/img/img_4.png"  />
-<img src="docs/img/img_5.png"  />
-<img src="docs/img/img_6.png"  />
-
