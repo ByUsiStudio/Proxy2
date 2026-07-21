@@ -4,121 +4,48 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 public class SharedPreferencesUtil {
- 
-    //文件名称为config
+
     private static final String PREFERENCE_NAME = "config";
-    //可以在此定义常亮，当做key使用
-    //版本号
     public static final String APK_VERSION = "APK_VERSION";
-    //下载地址
     public static final String APK_DOWNLOAD_URL = "APK_DOWNLOAD_URL";
- 
+
+    private static final Object lock = new Object();
     private static SharedPreferences sharedPreferences;
- 
-    /**
-     * 写入Boolean变量至sharedPreferences中
-     *
-     * @param context 上下文环境
-     * @param key     存储节点名称
-     * @param value   存储节点的值
-     */
+
+    private static SharedPreferences getPreferences(Context context) {
+        synchronized (lock) {
+            if (sharedPreferences == null) {
+                sharedPreferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
+            }
+            return sharedPreferences;
+        }
+    }
+
     public static void putBoolean(Context context, String key, boolean value) {
-        //(存储节点文件名称，读写方式)
-        if (sharedPreferences == null) {
-            sharedPreferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        }
-        sharedPreferences.edit().putBoolean(key, value).commit();
+        getPreferences(context).edit().putBoolean(key, value).apply();
     }
- 
-    /**
-     * 读取boolean标识从sharedPreferences中
-     *
-     * @param context 上下文环境
-     * @param key     存储节点名称
-     * @param value   没有此节点的默认值
-     * @return 默认值或者此节点读取到的结果
-     */
+
     public static boolean getBoolean(Context context, String key, boolean value) {
-        //(存储节点文件名称,读写方式)
-        if (sharedPreferences == null) {
-            sharedPreferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        }
-        return sharedPreferences.getBoolean(key, value);
+        return getPreferences(context).getBoolean(key, value);
     }
- 
-    /**
-     * 写入String变量至sharedPreferences中
-     *
-     * @param context 上下文环境
-     * @param key     存储节点名称
-     * @param value   存储节点的值String
-     */
+
     public static void putString(Context context, String key, String value) {
-        //存储节点文件的名称，读写方式
-        if (sharedPreferences == null) {
-            sharedPreferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        }
-        sharedPreferences.edit().putString(key, value).commit();
+        getPreferences(context).edit().putString(key, value).apply();
     }
- 
-    /**
-     * 读取String标识从sharedPreferences中
-     *
-     * @param context  上下文环境
-     * @param key      存储节点名称
-     * @param defValue 没有此节点的默认值
-     * @return 返回默认值或者此节点读取到的结果
-     */
+
     public static String getString(Context context, String key, String defValue) {
-        //存储节点文件的名称，读写方式
-        if (sharedPreferences == null) {
-            sharedPreferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        }
-        return sharedPreferences.getString(key, defValue);
+        return getPreferences(context).getString(key, defValue);
     }
- 
-    /**
-     * 写入int变量至sharedPreferences中
-     *
-     * @param context 上下文环境
-     * @param key     存储节点名称
-     * @param value   存储节点的值String
-     */
+
     public static void putInt(Context context, String key, int value) {
-        //存储节点文件的名称，读写方式
-        if (sharedPreferences == null) {
-            sharedPreferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        }
-        sharedPreferences.edit().putInt(key, value).commit();
+        getPreferences(context).edit().putInt(key, value).apply();
     }
- 
-    /**
-     * 读取int标识从sharedPreferences中
-     *
-     * @param context  上下文环境
-     * @param key      存储节点名称
-     * @param defValue 没有此节点的默认值
-     * @return 返回默认值或者此节点读取到的结果
-     */
+
     public static int getInt(Context context, String key, int defValue) {
-        //存储节点文件的名称，读写方式
-        if (sharedPreferences == null) {
-            sharedPreferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        }
-        return sharedPreferences.getInt(key, defValue);
+        return getPreferences(context).getInt(key, defValue);
     }
- 
-    /**
-     * 从sharedPreferences中移除指定节点
-     *
-     * @param context 上下文环境
-     * @param key     需要移除节点的名称
-     */
+
     public static void remove(Context context, String key) {
-        //存储节点文件的名称，读写方式
-        if (sharedPreferences == null) {
-            sharedPreferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE);
-        }
-        sharedPreferences.edit().remove(key).commit();
+        getPreferences(context).edit().remove(key).apply();
     }
 }

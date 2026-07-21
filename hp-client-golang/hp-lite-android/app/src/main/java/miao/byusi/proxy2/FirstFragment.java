@@ -1,9 +1,12 @@
 package miao.byusi.proxy2;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,21 +17,23 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-
-import miao.byusi.proxy2.databinding.FragmentFirstBinding;
-import miao.byusi.proxy2.util.ConstConfig;
-import miao.byusi.proxy2.util.CopyUtil;
-import miao.byusi.proxy2.util.SharedPreferencesUtil;
-
+import java.lang.ref.WeakReference;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import miao.byusi.proxy2.databinding.FragmentFirstBinding;
+import miao.byusi.proxy2.util.ConstConfig;
+import miao.byusi.proxy2.util.CopyUtil;
+import miao.byusi.proxy2.util.SharedPreferencesUtil;
+
 public class FirstFragment extends Fragment {
-    private static LogAdapter adapter;
+    private LogAdapter adapter;
     private FragmentFirstBinding binding;
+    private RegHandler regHandler;
+    private BroadcastReceiver logReceiver;
 
     @Override
     public View onCreateView(
@@ -36,6 +41,7 @@ public class FirstFragment extends Fragment {
             Bundle savedInstanceState
     ) {
         binding = FragmentFirstBinding.inflate(inflater, container, false);
+        regHandler = new RegHandler(this);
         return binding.getRoot();
     }
 
@@ -50,26 +56,62 @@ public class FirstFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // 设置适配器
         adapter = new LogAdapter(getActivity(), new ArrayList<>());
         binding.listView.setAdapter(adapter);
         startConnect();
+
+        logReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String message = intent.getStringExtra("message");
+                if (message != null) {
+                    addLog(message);
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter("miao.byusi.proxy2.LOG_MESSAGE");
+        getActivity().registerReceiver(logReceiver, filter);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (regHandler != null) {
+            regHandler.removeCallbacksAndMessages(null);
+        }
+        if (logReceiver != null) {
+            getActivity().unregisterReceiver(logReceiver);
+        }
         binding = null;
     }
 
-    public static class RegHandler extends Handler {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            adapter.addLogEntry(new LogEntry(new Date(), msg.obj.toString()));
+    public RegHandler getRegHandler() {
+        return regHandler;
+    }
+
+    public void addLog(String message) {
+        if (adapter != null) {
+            adapter.addLogEntry(new LogEntry(new Date(), message));
         }
     }
 
-    // 自定义适配器类
+    public static class RegHandler extends Handler {
+        private final WeakReference<FirstFragment> fragmentRef;
+
+        public RegHandler(FirstFragment fragment) {
+            super(Looper.getMainLooper());
+            this.fragmentRef = new WeakReference<>(fragment);
+        }
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            FirstFragment fragment = fragmentRef.get();
+            if (fragment != null && fragment.isAdded() && msg.obj != null) {
+                fragment.addLog(msg.obj.toString());
+            }
+        }
+    }
+
     private class LogAdapter extends ArrayAdapter<LogEntry> {
         private LayoutInflater inflater;
         private List<LogEntry> logEntries;
@@ -86,10 +128,11 @@ public class FirstFragment extends Fragment {
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.list_item_log, parent, false);
             }
-            // 获取当前位置的日志条目
             LogEntry logEntry = getItem(position);
+            if (logEntry == null) {
+                return convertView;
+            }
 
-            // 设置时间戳和内容
             TextView textViewTimestamp = convertView.findViewById(R.id.textViewTimestamp);
             TextView textViewContent = convertView.findViewById(R.id.textViewContent);
             textViewContent.setTextSize(10);
@@ -100,18 +143,10 @@ public class FirstFragment extends Fragment {
             textViewTimestamp.setText(timestamp);
             textViewContent.setText(logEntry.getContent());
 
-
-            textViewContent.setText(logEntry.getContent());
-
-            // 为列表项添加点击监听器
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // 在这里执行你想要的操作，比如显示详细信息或处理点击事件
-                    LogEntry logEntry1 = logEntries.get(position);
-                    if (logEntry1 != null) {
-                        CopyUtil.copy(logEntry1.getContent(), getActivity(), true);
-                    }
+            convertView.setOnClickListener(v -> {
+                LogEntry logEntry1 = logEntries.get(position);
+                if (logEntry1 != null && getActivity() != null) {
+                    CopyUtil.copy(logEntry1.getContent(), getActivity(), true);
                 }
             });
             return convertView;
@@ -119,12 +154,10 @@ public class FirstFragment extends Fragment {
 
         public void addLogEntry(LogEntry logEntry) {
             if (logEntries.size() >= MAX_LOG_COUNT) {
-                // 如果达到最大条目数，移除最早的一条日志
                 logEntries.remove(0);
             }
             logEntries.add(0, logEntry);
             notifyDataSetChanged();
         }
     }
-
 }
