@@ -7,7 +7,6 @@ import (
 	"hp-lib/protol"
 	"hp-lib/util"
 	"net"
-	"os"
 )
 
 type CmdClientHandler struct {
@@ -54,7 +53,7 @@ func (h *CmdClientHandler) ChannelRead(conn net.Conn, data interface{}) {
 	case cmdMessage.CmdMessage_DISCONNECT:
 		h.CmdClient.CallMsg("服务器要求你关闭：" + message.GetData())
 		h.CmdClient.Close()
-		os.Exit(-1)
+		h.Active = false
 		break
 	case cmdMessage.CmdMessage_TIPS:
 		h.CmdClient.CallMsg(message.Data)
