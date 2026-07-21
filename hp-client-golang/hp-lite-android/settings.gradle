@@ -16,6 +16,6 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
-rootProject.name = "hplite"
+rootProject.name = "Proxy2"
 include ':app'
 include ':mylibrary'
