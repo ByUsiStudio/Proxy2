@@ -1,4 +1,4 @@
-package net.hserver.hplite;
+package miao.byusi.proxy2;
 
 
 import android.annotation.SuppressLint;
@@ -17,8 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 
-import net.hserver.hplite.util.ConstConfig;
-import net.hserver.hplite.util.SharedPreferencesUtil;
+import miao.byusi.proxy2.util.ConstConfig;
+import miao.byusi.proxy2.util.SharedPreferencesUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -49,13 +49,13 @@ public class ProxyService extends Service {
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
                     .setSmallIcon(R.drawable.ic_launcher)
-                    .setContentTitle("HP-LITE")
+                    .setContentTitle("Proxy2")
                     .setContentText("服务已经运行");
             startForeground(NOTIFICATION_ID, builder.build());
         } else {
             // 当前设备运行的是 Android 8.0 之前的版本
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
-                    .setContentTitle("HP-LITE")
+                    .setContentTitle("Proxy2")
                     .setContentText("服务已经运行")
                     .setSmallIcon(R.drawable.ic_launcher)
                     .setPriority(NotificationCompat.PRIORITY_LOW);
@@ -71,7 +71,7 @@ public class ProxyService extends Service {
     private void updateNotification(String message) {
         // 更新通知的内容
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
-                .setContentTitle("HP-LITE")
+                .setContentTitle("Proxy2")
                 .setContentText(message)
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setPriority(NotificationCompat.PRIORITY_LOW);

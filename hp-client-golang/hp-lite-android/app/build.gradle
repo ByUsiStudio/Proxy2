@@ -4,11 +4,11 @@ plugins {
 
 android {
     
-    namespace 'net.hserver.hplite'
+    namespace 'miao.byusi.proxy2'
     compileSdk 34
 
     defaultConfig {
-        applicationId "net.hserver.hplite"
+        applicationId "miao.byusi.proxy2"
         minSdk 21
         targetSdk 34
         versionCode 1

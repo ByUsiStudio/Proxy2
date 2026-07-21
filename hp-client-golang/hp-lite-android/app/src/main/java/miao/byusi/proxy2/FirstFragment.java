@@ -1,4 +1,4 @@
-package net.hserver.hplite;
+package miao.byusi.proxy2;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,10 +15,10 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 
-import net.hserver.hplite.databinding.FragmentFirstBinding;
-import net.hserver.hplite.util.ConstConfig;
-import net.hserver.hplite.util.CopyUtil;
-import net.hserver.hplite.util.SharedPreferencesUtil;
+import miao.byusi.proxy2.databinding.FragmentFirstBinding;
+import miao.byusi.proxy2.util.ConstConfig;
+import miao.byusi.proxy2.util.CopyUtil;
+import miao.byusi.proxy2.util.SharedPreferencesUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

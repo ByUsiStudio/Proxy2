@@ -1,4 +1,4 @@
-package net.hserver.hplite;
+package miao.byusi.proxy2;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -28,10 +28,10 @@ import com.yzq.zxinglibrary.android.CaptureActivity;
 import com.yzq.zxinglibrary.bean.ZxingConfig;
 import com.yzq.zxinglibrary.common.Constant;
 
-import net.hserver.hplite.databinding.ActivityMainBinding;
-import net.hserver.hplite.util.ConstConfig;
-import net.hserver.hplite.util.CopyUtil;
-import net.hserver.hplite.util.SharedPreferencesUtil;
+import miao.byusi.proxy2.databinding.ActivityMainBinding;
+import miao.byusi.proxy2.util.ConstConfig;
+import miao.byusi.proxy2.util.CopyUtil;
+import miao.byusi.proxy2.util.SharedPreferencesUtil;
 
 import java.util.List;
 
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         if (id == R.id.action_about) {
-            Toast.makeText(getApplicationContext(), "禁止一切违法行为，后果自负，开源地址：https://gitee.com/HServer/hp-lite", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "禁止一切违法行为，后果自负，开源地址：https://gitee.com/byusistudio/proxy2", Toast.LENGTH_LONG).show();
             return true;
         }
         return super.onOptionsItemSelected(item);

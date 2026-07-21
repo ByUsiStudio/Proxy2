@@ -1,4 +1,4 @@
-package net.hserver.hplite.util;
+package miao.byusi.proxy2.util;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;

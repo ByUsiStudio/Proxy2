@@ -1,4 +1,4 @@
-package net.hserver.hplite;
+package miao.byusi.proxy2;
 
 import android.app.Application;
 import android.content.Context;
@@ -13,7 +13,7 @@ public class MyApplication extends Application {
         super.onCreate();
         Thread.setDefaultUncaughtExceptionHandler((thread, ex) -> {
             // 记录异常信息
-            Log.e("hp-lite", "异常: ", ex);
+            Log.e("Proxy2", "异常: ", ex);
         });
     }
 

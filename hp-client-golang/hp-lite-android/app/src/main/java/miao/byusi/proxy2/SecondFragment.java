@@ -1,4 +1,4 @@
-package net.hserver.hplite;
+package miao.byusi.proxy2;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
-import net.hserver.hplite.databinding.FragmentSecondBinding;
+import miao.byusi.proxy2.databinding.FragmentSecondBinding;
 
 
 public class SecondFragment extends Fragment {
