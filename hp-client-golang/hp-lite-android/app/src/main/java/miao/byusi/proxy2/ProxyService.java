@@ -2,6 +2,7 @@ package miao.byusi.proxy2;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +11,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PowerManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -33,6 +35,7 @@ public class ProxyService extends Service {
 
     private StatusHandler handler;
     private Runnable runnableCode;
+    private PowerManager.WakeLock wakeLock;
 
     @Override
     public void onCreate() {
@@ -50,11 +53,21 @@ public class ProxyService extends Service {
             notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         }
 
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setContentTitle("Proxy2")
-                .setContentText("服务已经运行");
+                .setContentText("服务已经运行")
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
         startForeground(NOTIFICATION_ID, builder.build());
+
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Proxy2:WakeLock");
+        wakeLock.acquire();
 
         runnableCode = new Runnable() {
             @Override
@@ -164,6 +177,9 @@ public class ProxyService extends Service {
         isStart = false;
         if (handler != null) {
             handler.removeCallbacksAndMessages(null);
+        }
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
         }
         try {
             Hp_android_lib.close();
