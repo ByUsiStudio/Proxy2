@@ -1,5 +1,10 @@
 package cmd
 
+import (
+	"hp-lib/net/hp"
+	"hp-lib/version"
+)
+
 var version = version.ClientVersion
 
 type CmdClient struct {
