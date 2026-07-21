@@ -1,0 +1,58 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    
+    namespace 'net.hserver.hplite'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "net.hserver.hplite"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "8.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildFeatures {
+        viewBinding true
+    }
+
+}
+
+dependencies {
+    implementation fileTree(include: ['*.aar'], dir: 'libs')
+    //----------AndroidX 版本
+    //app-updater
+    implementation 'com.github.jenly1314.AppUpdater:app-updater:1.2.0'
+    //app-dialog
+    implementation 'com.github.jenly1314.AppUpdater:app-dialog:1.2.0'
+
+    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.karumi:dexter:6.2.3'
+    implementation 'com.alibaba:fastjson:1.1.70.android'
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'com.google.android.material:material:1.5.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    implementation 'androidx.navigation:navigation-fragment:2.4.1'
+    implementation 'androidx.navigation:navigation-ui:2.4.1'
+    implementation project(path: ':mylibrary')
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+}
